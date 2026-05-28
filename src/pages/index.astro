@@ -1,0 +1,32 @@
+---
+import "@fontsource/space-mono/400.css";
+import "@fontsource/space-mono/700.css";
+import "../styles/global.css";
+import Background from "../components/Background.tsx";
+import Hero from "../components/Hero.tsx";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <meta
+      name="description"
+      content="Gabriel Mouallem — Product & Software Engineer. Full-stack, Kubernetes, cloud native."
+    />
+    <meta name="theme-color" content="#14a3d6" />
+    <title>Gabriel Mouallem</title>
+  </head>
+  <body>
+    {/* Swap palette in one place. Full list in src/components/gradient/palettes.ts
+        Light:  botanica · lichen · forestMagic · sunwash · glacial · riso · sumie · pollen · cyanotype · saint
+        Dark:   prismaticDispersion · prismaticAurora · prismaticNewton · prismaticCrystal · prismaticOnyx
+                · prismaticSpectrum · bismuthCrystal · holographicCD · auroraBorealis · nebula · plasma
+                · vaporwave · ironEmberDark · cherenkov */}
+    <Background client:load palette="prismaticDispersion" />
+    <Hero client:load />
+  </body>
+</html>

@@ -1,0 +1,495 @@
+:root {
+  --fg: #0a0a0a;
+  --fg-soft: rgba(10, 10, 10, 0.72);
+  --fg-mute: rgba(10, 10, 10, 0.45);
+  --fg-faint: rgba(10, 10, 10, 0.28);
+  --selection-bg: #0a0a0a;
+  --selection-fg: #f5edd8;
+}
+
+html[data-palette-mode="dark"] {
+  --fg: #ede4cf;
+  --fg-soft: rgba(237, 228, 207, 0.78);
+  --fg-mute: rgba(237, 228, 207, 0.5);
+  --fg-faint: rgba(237, 228, 207, 0.3);
+  --selection-bg: #ede4cf;
+  --selection-fg: #0a0a0a;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background: #14a3d6;
+  color: var(--fg);
+  font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+html[data-palette-mode="dark"],
+html[data-palette-mode="dark"] body {
+  background: #0a0a18;
+}
+
+body {
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+::selection {
+  background: var(--selection-bg);
+  color: var(--selection-fg);
+}
+
+/* ------------------------------------------------------------------ */
+/* Hero stage                                                          */
+/* ------------------------------------------------------------------ */
+
+.hero-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  min-height: 640px;
+  overflow: hidden;
+  color: var(--fg);
+  isolation: isolate;
+}
+
+/* ------------------------------------------------------------------ */
+/* Marquee                                                             */
+/* ------------------------------------------------------------------ */
+
+.marquee {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 18px 0 16px;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: clamp(13px, 1.05vw, 17px);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  z-index: 4;
+}
+
+.marquee-track {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee-scroll 36s linear infinite;
+  will-change: transform;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-33.3333%);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Plus cluster                                                        */
+/* ------------------------------------------------------------------ */
+
+.plus-cluster {
+  position: absolute;
+  top: 7.5vh;
+  right: 5vw;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px 12px;
+  font-size: clamp(18px, 1.6vw, 26px);
+  font-weight: 700;
+  line-height: 1;
+  z-index: 3;
+}
+
+/* ------------------------------------------------------------------ */
+/* Hero title                                                          */
+/* ------------------------------------------------------------------ */
+
+.hero-title {
+  position: absolute;
+  top: 9.5vh;
+  left: 4.5vw;
+  right: 4vw;
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  font-size: clamp(64px, 13vw, 220px);
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.hero-line {
+  display: block;
+}
+
+.hero-line-1 {
+  text-align: left;
+}
+
+.hero-line-2 {
+  text-align: left;
+  margin-top: 0.02em;
+  padding-left: 22vw;
+}
+
+.apos {
+  display: inline-block;
+  transform: translate(-0.03em, -0.02em) scale(1.05);
+  font-style: normal;
+}
+
+/* ------------------------------------------------------------------ */
+/* Experience panel                                                    */
+/* ------------------------------------------------------------------ */
+
+.exp-panels {
+  position: absolute;
+  top: 14vh;
+  left: 4.5vw;
+  right: 8vw;
+  max-width: 720px;
+  pointer-events: none;
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 3;
+}
+
+.exp-panel {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translate3d(0, 14px, 0);
+  transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.exp-panel[data-active="true"] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.exp-eyebrow {
+  font-size: clamp(12px, 1vw, 15px);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  margin-bottom: 18px;
+  text-transform: uppercase;
+}
+
+.exp-company {
+  font-size: clamp(40px, 6.5vw, 104px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 0.96;
+  margin-bottom: 14px;
+}
+
+.exp-role {
+  font-size: clamp(15px, 1.45vw, 22px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+
+.exp-meta {
+  font-size: clamp(12px, 1.05vw, 16px);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  margin-bottom: 22px;
+  color: var(--fg-soft);
+}
+
+.exp-bullets {
+  list-style: none;
+  font-size: clamp(13px, 1.1vw, 17px);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+}
+
+.exp-bullets li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 8px;
+}
+
+.exp-bullets li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 12px;
+  height: 2px;
+  background: var(--fg);
+}
+
+/* ------------------------------------------------------------------ */
+/* Timeline                                                            */
+/* ------------------------------------------------------------------ */
+
+.timeline {
+  position: absolute;
+  left: 4.5vw;
+  right: 4.5vw;
+  bottom: 0;
+  top: 58vh;
+  z-index: 2;
+}
+
+.timeline-grid {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.timeline-col {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 0;
+  transition: opacity 0.45s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.timeline-col[data-active="false"] {
+  opacity: 0.55;
+}
+
+.timeline-col[data-past="true"][data-active="false"] {
+  opacity: 0.38;
+}
+
+.timeline-col[data-active="true"] {
+  opacity: 1;
+}
+
+.timeline-label {
+  position: absolute;
+  left: 10px;
+  top: 0;
+  white-space: nowrap;
+  font-size: clamp(11px, 0.95vw, 14px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: left top;
+  color: var(--fg);
+}
+
+.timeline-col:nth-child(even) .timeline-label {
+  transform: translateY(34px);
+}
+
+.timeline-col[data-active="true"] .timeline-label {
+  transform: translate(0, 0) scale(1.06);
+}
+
+.timeline-idx {
+  font-size: clamp(9px, 0.75vw, 11px);
+  letter-spacing: 0.2em;
+  margin-bottom: 3px;
+  color: var(--fg-mute);
+}
+
+.timeline-name {
+  font-size: clamp(12px, 1.05vw, 16px);
+  letter-spacing: 0.01em;
+}
+
+.timeline-years {
+  font-size: clamp(10px, 0.85vw, 13px);
+  margin-top: 2px;
+  font-weight: 400;
+  color: var(--fg-soft);
+}
+
+.timeline-line {
+  position: absolute;
+  top: 72px;
+  bottom: 14px;
+  left: 0;
+  width: 1px;
+  background: var(--fg);
+  opacity: 0.55;
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.4s ease, opacity 0.4s ease,
+    left 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.timeline-col:nth-child(even) .timeline-line {
+  top: 106px;
+}
+
+.timeline-col[data-active="true"] .timeline-line {
+  width: 3px;
+  left: -1px;
+  opacity: 1;
+}
+
+.timeline-col[data-active="true"] .timeline-line::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: -7px;
+  width: 17px;
+  height: 17px;
+  border: 3px solid var(--fg);
+  border-radius: 50%;
+  background: transparent;
+}
+
+.timeline-col[data-active="true"] .timeline-line::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--fg);
+}
+
+.timeline-col[data-past="true"][data-active="false"] .timeline-line {
+  opacity: 0.32;
+}
+
+/* ------------------------------------------------------------------ */
+/* Decorations: arrow + logo + scroll hint                             */
+/* ------------------------------------------------------------------ */
+
+.arrow {
+  position: absolute;
+  right: 9vw;
+  top: 38vh;
+  z-index: 3;
+  width: clamp(64px, 7vw, 110px);
+  height: clamp(64px, 7vw, 110px);
+  color: var(--fg);
+}
+
+.logo {
+  position: absolute;
+  right: 5.5vw;
+  bottom: 4vh;
+  z-index: 3;
+  font-weight: 700;
+  font-size: clamp(14px, 1.25vw, 22px);
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+}
+
+.logo-mark {
+  letter-spacing: -0.02em;
+}
+
+.logo-dot {
+  margin: 0 2px;
+}
+
+.logo-name {
+  letter-spacing: 0.02em;
+}
+
+.scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 1.5vh;
+  transform: translateX(-50%);
+  font-size: clamp(11px, 0.95vw, 14px);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 400;
+  z-index: 3;
+  transition: opacity 0.35s ease;
+  white-space: nowrap;
+  color: var(--fg-soft);
+}
+
+/* ------------------------------------------------------------------ */
+/* Responsive tweaks                                                   */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 720px) {
+  .hero-line-2 {
+    padding-left: 8vw;
+  }
+
+  .exp-panels {
+    right: 4.5vw;
+    top: 16vh;
+  }
+
+  .arrow {
+    right: 6vw;
+    top: 33vh;
+    width: 56px;
+    height: 56px;
+  }
+
+  .timeline {
+    top: 64vh;
+  }
+
+  .timeline-label {
+    font-size: 10px;
+  }
+
+  .timeline-years {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Reduced motion fallback                                             */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+
+  .hero-stage {
+    height: auto;
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  .exp-panels {
+    position: relative;
+    opacity: 1 !important;
+    transform: none !important;
+    margin-top: 60vh;
+  }
+
+  .exp-panel {
+    position: relative;
+    opacity: 1;
+    transform: none;
+    margin-bottom: 48px;
+  }
+}
