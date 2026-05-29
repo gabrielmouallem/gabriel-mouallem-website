@@ -1,9 +1,10 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { experiences } from "../data/experiences";
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 const MARQUEE_TEXT =
   "product & software engineer  —  full-stack  —  kubernetes  —  cloud native  —  ";
@@ -13,7 +14,12 @@ const HERO_PHASE_END = 0.06;
 export default function Hero() {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const timelineRef = useRef<HTMLDivElement | null>(null);
+  const labelRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const stRef = useRef<ScrollTrigger | null>(null);
+
   const [progress, setProgress] = useState(0);
+  const [compact, setCompact] = useState(false);
 
   useLayoutEffect(() => {
     if (typeof window === "undefined") return;
@@ -31,7 +37,7 @@ export default function Hero() {
     const heroEnd = HERO_PHASE_END;
 
     const ctx = gsap.context(() => {
-      ScrollTrigger.create({
+      stRef.current = ScrollTrigger.create({
         trigger: wrapper,
         start: "top top",
         end: "+=700%",
@@ -61,11 +67,39 @@ export default function Hero() {
     return () => {
       window.removeEventListener("resize", onResize);
       ctx.revert();
+      stRef.current = null;
+    };
+  }, []);
+
+  // DOM measurement: detect when labels would overlap and switch to compact
+  // mode (hide inactive labels). This is the foundation for mobile.
+  useEffect(() => {
+    const container = timelineRef.current;
+    if (!container) return;
+
+    const compute = () => {
+      const w = container.clientWidth;
+      const N = experiences.length;
+      const spacing = w / (N - 1);
+      const widths = labelRefs.current.map((el) => el?.offsetWidth ?? 0);
+      const maxLabelW = widths.length ? Math.max(...widths) : 0;
+      setCompact(maxLabelW > spacing * 0.78);
+    };
+
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(container);
+    const fontReadyTimer = window.setTimeout(compute, 250);
+    return () => {
+      ro.disconnect();
+      window.clearTimeout(fontReadyTimer);
     };
   }, []);
 
   const N = experiences.length;
-  const inTimeline = progress > HERO_PHASE_END;
+  // >= so the first snap point (exactly heroEnd) lands on Irricontrol
+  // instead of flickering back to the empty hero state
+  const inTimeline = progress >= HERO_PHASE_END;
   const tp = inTimeline
     ? (progress - HERO_PHASE_END) / (1 - HERO_PHASE_END)
     : 0;
@@ -74,6 +108,20 @@ export default function Hero() {
     : -1;
 
   const heroAttenuation = Math.min(1, Math.max(0, progress / HERO_PHASE_END));
+
+  const scrollToIndex = (i: number) => {
+    const st = stRef.current;
+    if (!st) return;
+    const targetProgress =
+      HERO_PHASE_END + (i / (N - 1)) * (1 - HERO_PHASE_END);
+    const targetScroll = st.start + (st.end - st.start) * targetProgress;
+    gsap.to(window, {
+      scrollTo: targetScroll,
+      duration: 0.65,
+      ease: "power2.inOut",
+      overwrite: "auto",
+    });
+  };
 
   return (
     <div ref={wrapperRef} className="hero-wrapper">
@@ -98,8 +146,8 @@ export default function Hero() {
         <div
           className="exp-panels"
           style={{
-            opacity: inTimeline ? 1 : 0,
-            transform: `translateY(${inTimeline ? 0 : 10}px)`,
+            opacity: activeIdx >= 0 ? 1 : 0,
+            transform: `translateY(${activeIdx >= 0 ? 0 : 10}px)`,
           }}
           aria-live="polite"
         >
@@ -130,20 +178,34 @@ export default function Hero() {
         <Arrow />
         <Logo />
 
-        <div className="timeline">
+        <div
+          ref={timelineRef}
+          className="timeline"
+          data-compact={compact ? "true" : "false"}
+        >
           <div className="timeline-grid">
             {experiences.map((exp, i) => {
               const isActive = activeIdx === i;
               const isPast = i < activeIdx;
               return (
-                <div
+                <button
                   key={i}
+                  type="button"
                   className="timeline-col"
                   data-active={isActive ? "true" : "false"}
                   data-past={isPast ? "true" : "false"}
+                  data-first={i === 0 ? "true" : "false"}
+                  data-last={i === N - 1 ? "true" : "false"}
                   style={{ left: `${(i / (N - 1)) * 100}%` }}
+                  onClick={() => scrollToIndex(i)}
+                  aria-label={`Jump to ${exp.company}`}
                 >
-                  <div className="timeline-label">
+                  <div
+                    className="timeline-label"
+                    ref={(el) => {
+                      labelRefs.current[i] = el;
+                    }}
+                  >
                     <div className="timeline-idx">
                       {String(i + 1).padStart(2, "0")}
                     </div>
@@ -153,14 +215,14 @@ export default function Hero() {
                     </div>
                   </div>
                   <div className="timeline-line" />
-                </div>
+                </button>
               );
             })}
           </div>
         </div>
 
         <div className="scroll-hint" style={{ opacity: inTimeline ? 0 : 1 }}>
-          scroll to walk through 7 years
+          scroll or click to walk through 7 years
         </div>
       </div>
     </div>

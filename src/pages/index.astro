@@ -21,12 +21,13 @@ import Hero from "../components/Hero.tsx";
     <title>Gabriel Mouallem</title>
   </head>
   <body>
-    {/* Swap palette in one place. Full list in src/components/gradient/palettes.ts
-        Light:  botanica · lichen · forestMagic · sunwash · glacial · riso · sumie · pollen · cyanotype · saint
-        Dark:   prismaticDispersion · prismaticAurora · prismaticNewton · prismaticCrystal · prismaticOnyx
-                · prismaticSpectrum · bismuthCrystal · holographicCD · auroraBorealis · nebula · plasma
-                · vaporwave · ironEmberDark · cherenkov */}
-    <Background client:load palette="prismaticDispersion" />
+    {/* Swap variant + palette in one place. See palettes.ts for the full list.
+        variant: 'ribbon' (prism bands on dark) | 'mesh' (organic gradient blobs)
+        Light palettes:  botanica · lichen · forestMagic · sunwash · glacial · riso · sumie · pollen · cyanotype · saint
+        Dark palettes:   prismaticDispersion · prismaticAurora · prismaticNewton · prismaticCrystal
+                       · prismaticOnyx · prismaticSpectrum · bismuthCrystal · holographicCD
+                       · auroraBorealis · nebula · plasma · vaporwave · ironEmberDark · cherenkov */}
+    <Background client:load variant="ribbon" palette="prismaticSpectrum" />
     <Hero client:load />
   </body>
 </html>

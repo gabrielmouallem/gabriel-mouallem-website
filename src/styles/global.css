@@ -272,6 +272,23 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  /* reset button defaults */
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.timeline-col:focus-visible {
+  outline: none;
+}
+
+.timeline-col:focus-visible .timeline-line {
+  opacity: 1;
 }
 
 .timeline-col[data-active="false"] {
@@ -303,8 +320,32 @@ body {
   transform: translateY(34px);
 }
 
+/* Last column: flip the label leftward so it doesn't clip the viewport */
+.timeline-col[data-last="true"] .timeline-label {
+  left: auto;
+  right: 10px;
+  text-align: right;
+  transform-origin: right top;
+}
+
 .timeline-col[data-active="true"] .timeline-label {
   transform: translate(0, 0) scale(1.06);
+}
+
+.timeline-col[data-last="true"][data-active="true"] .timeline-label {
+  transform: translate(0, 0) scale(1.06);
+  transform-origin: right top;
+}
+
+/* Compact mode: only show the active column's label (mobile / dense layouts) */
+.timeline[data-compact="true"] .timeline-col:not([data-active="true"]) .timeline-label {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.timeline-label {
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease;
 }
 
 .timeline-idx {
