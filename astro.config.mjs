@@ -5,5 +5,7 @@ import react from '@astrojs/react';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://gabrielmouallem.github.io',
+  base: '/gabriel-mouallem-website',
   integrations: [react()]
 });

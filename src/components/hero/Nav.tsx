@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { MouseEventHandler, ReactNode } from "react";
 import { SITE } from "../../data/site";
+import { withBase } from "../../lib/base";
 import { CopyIcon } from "./icons";
 
 const EMAIL_ADDRESS = SITE.email;
@@ -122,7 +123,7 @@ export function Nav({ onAbout }: { onAbout: () => void }) {
       />
       <a
         className="nav-cta"
-        href={SITE.links.resume}
+        href={withBase(SITE.links.resume)}
         download={SITE.resumeFileName}
       >
         <span className="nav-cta-bracket" aria-hidden="true">[</span>

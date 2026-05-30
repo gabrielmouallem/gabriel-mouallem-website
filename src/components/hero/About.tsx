@@ -1,4 +1,5 @@
 import { SITE } from "../../data/site";
+import { withBase } from "../../lib/base";
 
 const EMAIL_ADDRESS = SITE.email;
 
@@ -89,7 +90,7 @@ export function About({ onClose }: { onClose: () => void }) {
               <li>
                 <a
                   className="about-link"
-                  href={SITE.links.resume}
+                  href={withBase(SITE.links.resume)}
                   download={SITE.resumeFileName}
                 >
                   {SITE.resumeLabel} ↓
