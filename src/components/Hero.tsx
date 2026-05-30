@@ -3,6 +3,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { experiences } from "../data/experiences";
+import { SITE } from "../data/site";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -255,6 +256,21 @@ export default function Hero() {
           </div>
         </div>
 
+        <div className="exp-annotations" aria-hidden="true">
+          {experiences.map(
+            (exp, i) =>
+              exp.annotation && (
+                <p
+                  key={i}
+                  className="exp-annotation"
+                  data-active={activeIdx === i ? "true" : "false"}
+                >
+                  {exp.annotation}
+                </p>
+              ),
+          )}
+        </div>
+
         <div
           className="exp-panels"
           style={{
@@ -350,7 +366,7 @@ function extractYears(dates: string): string {
   return `${m[1]}—${m[2] === "Present" ? "now" : m[2]}`;
 }
 
-const EMAIL_ADDRESS = "gabriel.unifei2017@gmail.com";
+const EMAIL_ADDRESS = SITE.email;
 
 interface NavItemProps {
   idx: string;
@@ -445,13 +461,13 @@ function Nav({ onAbout }: { onAbout: () => void }) {
       <NavItem
         idx="02"
         label="LinkedIn"
-        href="https://www.linkedin.com/in/gabrielmouallem"
+        href={SITE.links.linkedin}
         external
       />
       <NavItem
         idx="03"
         label="GitHub"
-        href="https://github.com/gabrielmouallem"
+        href={SITE.links.github}
         external
       />
       <NavItem
@@ -469,8 +485,8 @@ function Nav({ onAbout }: { onAbout: () => void }) {
       />
       <a
         className="nav-cta"
-        href="/Gabriel-Mouallem-Resume.pdf"
-        download="Gabriel-Mouallem-Resume.pdf"
+        href={SITE.links.resume}
+        download={SITE.resumeFileName}
       >
         <span className="nav-cta-bracket" aria-hidden="true">[</span>
         <span className="nav-cta-label">Download Resume</span>
@@ -506,7 +522,7 @@ function About({ onClose }: { onClose: () => void }) {
       className="about-backdrop"
       role="dialog"
       aria-modal="true"
-      aria-label="About Gabriel Mouallem"
+      aria-label={`About ${SITE.name}`}
       onClick={onClose}
     >
       <div className="about-modal" onClick={(e) => e.stopPropagation()}>
@@ -567,7 +583,7 @@ function About({ onClose }: { onClose: () => void }) {
               <li>
                 <a
                   className="about-link"
-                  href="https://www.linkedin.com/in/gabrielmouallem"
+                  href={SITE.links.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -577,7 +593,7 @@ function About({ onClose }: { onClose: () => void }) {
               <li>
                 <a
                   className="about-link"
-                  href="https://github.com/gabrielmouallem"
+                  href={SITE.links.github}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -587,8 +603,8 @@ function About({ onClose }: { onClose: () => void }) {
               <li>
                 <a
                   className="about-link"
-                  href="/Gabriel-Mouallem-Resume.pdf"
-                  download="Gabriel-Mouallem-Resume.pdf"
+                  href={SITE.links.resume}
+                  download={SITE.resumeFileName}
                 >
                   Download CV ↓
                 </a>
@@ -607,7 +623,7 @@ function About({ onClose }: { onClose: () => void }) {
         </div>
 
         <p className="about-copy">
-          © 2026 Gabriel Mouallem. All rights reserved.
+          © 2026 {SITE.name}. All rights reserved.
         </p>
       </div>
     </div>
@@ -653,10 +669,10 @@ function Arrow() {
 
 function Logo() {
   return (
-    <div className="logo" aria-label="Gabriel Mouallem">
-      <span className="logo-mark">GM</span>
+    <div className="logo" aria-label={SITE.name}>
+      <span className="logo-mark">{SITE.initials}</span>
       <span className="logo-dot">.</span>
-      <span className="logo-name">MOUALLEM</span>
+      <span className="logo-name">{SITE.lastName.toUpperCase()}</span>
     </div>
   );
 }

@@ -7,6 +7,9 @@ export interface Experience {
   dates: string;
   location?: string;
   bullets: string[];
+  /** Optional handwritten-style annotation shown to the right of
+   * the description on desktop (ttiago.com style). */
+  annotation?: string;
 }
 
 export const experiences: Experience[] = [
@@ -17,6 +20,7 @@ export const experiences: Experience[] = [
     role: "Mobile Intern → Full Stack Developer",
     dates: "Jul 2019 — Nov 2021",
     location: "Itajubá, BR",
+    annotation: "first taste of full-stack — learned so much it shaped everything that came after :)",
     bullets: [
       "Diagnosed and fixed a backend performance bottleneck — ~1000% page-load improvement via Django Cache, Celery background tasks, API pagination, and a schema refactor migrating models to abstract inheritance",
       "Implemented MQTT pub/sub for real-time Central Pivot irrigation IoT, plus low-level radio OTA protocols (encrypted message structures mapped to device memory) — primary liaison between hardware (embedded C#) and software (Python/React) teams",
@@ -44,6 +48,7 @@ export const experiences: Experience[] = [
     role: "Sr. Application Development Analyst",
     dates: "Jan 2022 — Sep 2022",
     location: "Unilever CRM · São Paulo, BR",
+    annotation: "big team, big stage — mentored devs and gave talks to hundreds",
     bullets: [
       "Co-led (1 of 2) the legacy Ionic 3/Angular → React Native migration of a CRM application used across 30+ countries, modernizing the Unilever mobile stack",
       "Engineered offline-first capabilities and offline-to-online sync via the Salesforce React Native SDK — reliable performance in varied connectivity",
@@ -86,6 +91,7 @@ export const experiences: Experience[] = [
     shortLabel: "Latitude.sh",
     role: "Product & Software Engineer (Kubernetes)",
     dates: "Jun 2024 — Apr 2026",
+    annotation: "a whole new world — bare metal, networking, data centers, kubernetes, cloud native",
     bullets: [
       "Primary dev and product driver for the Managed PostgreSQL DBaaS on bare-metal Kubernetes (CloudNativePG operator, Rancher API)",
       "Shipped automated S3 backups, connection pooling, IP whitelisting, audit logging, and customer-facing management tools",

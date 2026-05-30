@@ -685,6 +685,53 @@ body {
   transform: translate3d(0, 0, 0);
 }
 
+/* Handwritten annotations à la ttiago.com — sit in the empty right
+   side of the hero, below the faded "M." of the hero title and
+   vertically aligned with the description bullets. Crossfades with a
+   tiny slide-in when the experience becomes active. */
+.exp-annotations {
+  position: absolute;
+  /* Below the hero-title block (which ends around top:33vh) and
+     above the timeline (which starts at top:58vh). Vertically lands
+     in the middle of the bullets area on the left. */
+  top: 38vh;
+  right: 5vw;
+  width: clamp(220px, 22vw, 320px);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.exp-annotation {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  margin: 0;
+  font-family: "Caveat", "Comic Sans MS", cursive;
+  font-weight: 400;
+  font-size: clamp(22px, 1.9vw, 32px);
+  line-height: 1.22;
+  letter-spacing: 0;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.62);
+  /* Slight rotation gives it the handwritten "stuck on the page" feel */
+  transform: translate(8px, 0) rotate(-2deg);
+  opacity: 0;
+  transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.exp-annotation[data-active="true"] {
+  opacity: 1;
+  transform: translate(0, 0) rotate(-2deg);
+}
+
+@media (max-width: 900px) {
+  .exp-annotations {
+    display: none;
+  }
+}
+
 /* Title — still the visual anchor but ~40 % smaller for proportion */
 .exp-company {
   position: relative;
