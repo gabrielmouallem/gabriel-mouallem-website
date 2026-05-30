@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@astrojs/react": "^5.0.6",
+    "@astrojs/sitemap": "^3.7.3",
     "@fontsource/caveat": "^5.2.8",
     "@fontsource/space-mono": "^5.2.9",
     "@types/react": "^19.2.15",
@@ -24,6 +25,7 @@
     "react-dom": "^19.2.6"
   },
   "devDependencies": {
-    "@typescript/native-preview": "^7.0.0-dev.20260527.2"
+    "@typescript/native-preview": "^7.0.0-dev.20260527.2",
+    "sharp": "^0.34.5"
   }
 }

@@ -41,9 +41,7 @@ export function ExperiencePanels({ activeIdx }: { activeIdx: number }) {
           className="exp-panel"
           data-active={activeIdx === i ? "true" : "false"}
         >
-          <h2 className="exp-company" data-text={exp.company}>
-            {exp.company}
-          </h2>
+          <h2 className="exp-company">{exp.company}</h2>
           <div className="exp-meta">
             <span className="exp-role">{exp.role}</span>
             <span className="exp-meta-sep"> · </span>

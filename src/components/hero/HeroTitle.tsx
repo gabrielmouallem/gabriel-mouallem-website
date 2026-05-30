@@ -15,14 +15,12 @@ export function HeroTitle({ inTimeline, heroAttenuation }: Props) {
       }}
       aria-hidden={inTimeline ? "true" : undefined}
     >
-      <div className="hero-line hero-line-1" data-text="I’M">
+      <div className="hero-line hero-line-1">
         I<span className="apos">&rsquo;</span>M
       </div>
       <div className="hero-line hero-line-2">
-        <span className="hero-line-fragment" data-text="GABRIEL">
-          GABRIEL
-        </span>
-        <span className="hero-line-fragment" data-text="M.">M.</span>
+        <span className="hero-line-fragment">GABRIEL</span>
+        <span className="hero-line-fragment">M.</span>
       </div>
     </div>
   );

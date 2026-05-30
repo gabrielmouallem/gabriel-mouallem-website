@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://gabrielmouallem.github.io/gabriel-mouallem-website/sitemap-index.xml

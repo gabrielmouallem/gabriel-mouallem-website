@@ -7,18 +7,75 @@ import "../styles/global.css";
 import Hero from "../components/Hero.tsx";
 import { SITE } from "../data/site";
 import { withBase } from "../lib/base";
+import { buildPersonSchema, buildWebsiteSchema } from "../lib/structuredData";
+
+// Preload the body (400) + display (700) Space Mono latin subsets that the
+// above-the-fold copy uses, so the big hero title swaps to its real face
+// sooner (faster LCP). Imported as URLs so the hashed href matches the
+// @font-face src Vite emits from the Fontsource CSS — the browser reuses the
+// single download instead of fetching twice.
+import spaceMono400 from "@fontsource/space-mono/files/space-mono-latin-400-normal.woff2?url";
+import spaceMono700 from "@fontsource/space-mono/files/space-mono-latin-700-normal.woff2?url";
+
+const canonical = SITE.url;
+const ogImage = new URL(SITE.ogImage.replace(/^\//, ""), SITE.url).href;
+const personSchema = buildPersonSchema();
+const websiteSchema = buildWebsiteSchema();
 ---
 
 <html lang="en" data-palette-mode="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href={withBase("/favicon.svg")} />
-    <link rel="icon" href={withBase("/favicon.ico")} />
+    <link rel="icon" type="image/png" sizes="32x32" href={withBase("/favicon-32.png")} />
+    <link rel="apple-touch-icon" href={withBase("/apple-touch-icon.png")} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
+
+    <link rel="preload" href={spaceMono400} as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href={spaceMono700} as="font" type="font/woff2" crossorigin="anonymous" />
+
+    {/* ── Primary SEO ─────────────────────────────────────────────── */}
+    <title>{SITE.pageTitle}</title>
     <meta name="description" content={SITE.description} />
+    <meta name="keywords" content={SITE.keywords.join(", ")} />
+    <meta name="author" content={SITE.name} />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href={canonical} />
+    <link rel="sitemap" type="application/xml" href={withBase("/sitemap-index.xml")} />
+
+    {/* ── Open Graph ──────────────────────────────────────────────── */}
+    <meta property="og:type" content="profile" />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={SITE.pageTitle} />
+    <meta property="og:description" content={SITE.description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${SITE.name} — ${SITE.title}`} />
+    <meta property="profile:first_name" content={SITE.firstName} />
+    <meta property="profile:last_name" content={SITE.lastName} />
+
+    {/* ── Twitter / X ─────────────────────────────────────────────── */}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={SITE.pageTitle} />
+    <meta name="twitter:description" content={SITE.description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={`${SITE.name} — ${SITE.title}`} />
+
     <meta name="theme-color" content="#020308" />
-    <title>{SITE.name}</title>
+
+    {/* ── Structured data (schema.org) ────────────────────────────── */}
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(personSchema)}
+    />
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(websiteSchema)}
+    />
     {/* Resolve the palette mode before first paint to avoid a flash:
         an explicit stored choice wins, otherwise default to dark (the OS
         preference is intentionally ignored). The matching <html> attribute
@@ -39,29 +96,28 @@ import { withBase } from "../lib/base";
     </script>
   </head>
   <body>
-    {/* ── BACKGROUND: static scratch texture ──────────────────────────
-        Near-black scanned surface with fine diagonal scratches + dust,
-        plus a soft scrim on top for text contrast. Both layers are
-        theme-aware (see global.css): in light mode the texture is
-        inverted + desaturated to a B&W paper grain and the scrim flips
-        to a light wash. */}
-    <div aria-hidden="true" class="bg-texture"></div>
-    <div aria-hidden="true" class="bg-scrim"></div>
+    {/* ── SEO / a11y document header ───────────────────────────────────
+        The visible hero is a stylized, animated treatment of the name, so
+        the real semantic heading + intro live here (visually hidden but
+        exposed to crawlers and screen readers). This gives the page a
+        single, descriptive <h1> and surfaces the LATAM / remote-contract
+        context the visual design only implies. */}
+    <header class="sr-only">
+      <h1>Gabriel Mouallem — Product &amp; Software Engineer</h1>
+      <p>
+        Senior product and software engineer based in Itajubá, Brazil (LATAM),
+        available for remote and contract work with US and international teams.
+        7+ years building full-stack products with React, Next.js, TypeScript,
+        Node.js and Python, plus cloud-native infrastructure on Kubernetes —
+        from IoT and AI/computer-vision platforms to a managed PostgreSQL
+        database service. Open to nearshore software development, staff
+        augmentation and outsourcing engagements.
+      </p>
+    </header>
 
-    {/* ── NOISE GRAIN OVERLAY (ElevenLabs technique) ──────────────────
-        A 256px noise PNG tiled with `image-rendering:pixelated` and
-        `mix-blend-mode:overlay`. Overlay lightens on bright noise and
-        darkens on dark noise, embossing a fine fabric-like grain onto
-        the bg. 128px tile on retina keeps the grain crisp. */}
-    <div aria-hidden="true" class="noise-overlay"></div>
-    <div aria-hidden="true" class="noise-grain"></div>
-
+    {/* The page sits directly on the solid `--page-bg` (see global.css);
+        the former scratch/fabric/noise/lens-flare overlay layers were
+        removed for a clean flat background. */}
     <Hero client:load />
-
-    {/* ── LENS FLARE OVERLAY ──────────────────────────────────────────
-        A full-screen lens-flare photo laid over EVERYTHING (incl. the
-        hero) and blended `lighten` at low opacity so only its bright
-        light streaks add a subtle optical glow without dimming content. */}
-    <div aria-hidden="true" class="lens-flare"></div>
   </body>
 </html>

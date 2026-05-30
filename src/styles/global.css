@@ -1,69 +1,3 @@
-/* ── Fabric/film grain ────────────────────────────────────────────────
-   A woven dot-lattice tile gives the bg a fine fabric tooth. The blend
-   must match its base:
-     • multiply = subtract darkness → LIGHT base (light mode)
-     • screen   = add light         → DARK base  (dark mode)
-   So the tile + blend + opacity all flip per mode via the
-   `--noise-overlay-*` theme tokens:
-     • `fabric.png`        — light threads → DARK mode via `screen`
-     • `fabric-invert.png` — inverted dark threads → LIGHT mode via `multiply`
-   Same small `--weave` pitch in both modes so the scale matches. */
-.noise-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  --weave: 3px; /* thread pitch — smaller = finer fabric */
-  /* Light: inverted (dark) threads multiplied onto paper.
-     Dark: light threads screened onto the charcoal base. */
-  background-image: var(--noise-overlay-image);
-  background-repeat: repeat;
-  background-size: var(--weave) var(--weave);
-  mix-blend-mode: var(--noise-overlay-blend);
-  opacity: var(--noise-overlay-opacity);
-}
-
-/* Optional fine film grain ON TOP of the weave — ElevenLabs' actual
-   noise.png role. Kept very subtle so it adds tooth without grunge. */
-.noise-grain {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  image-rendering: pixelated;
-  background-image: image-set(
-    url("/noise.avif") type("image/avif"),
-    url("/noise.png") type("image/png")
-  );
-  background-image: -webkit-image-set(
-    url("/noise.avif") type("image/avif"),
-    url("/noise.png") type("image/png")
-  );
-  background-size: 256px;
-  mix-blend-mode: overlay;
-  opacity: 0.35;
-}
-
-/* ── Lens flare ───────────────────────────────────────────────────────
-   A full-bleed lens-flare photo composited on TOP of the whole page.
-   `screen` blend keeps only the bright streaks (black areas vanish) and a
-   low opacity keeps the effect as a faint optical glow. Sits above all
-   content with pointer-events disabled so it never intercepts clicks. */
-.lens-flare {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  background-image: url("/lens-flare.png");
-  /* Stretch the whole flare to fit the viewport exactly (no cropping). */
-  background-size: 100% 100%;
-  background-position: center;
-  background-repeat: no-repeat;
-  mix-blend-mode: lighten;
-  /* Light mode pushes the flare stronger so it reads against the bright page. */
-  opacity: var(--lens-flare-opacity);
-}
-
 /* ──────────────────────────────────────────────────────────────────────
    THEME TOKENS — the ONLY place light/dark diverge.
 
@@ -92,27 +26,11 @@
   --nav-hover-bg: rgba(0, 0, 0, 0.05);
   --about-backdrop-bg: rgba(20, 18, 16, 0.32);
 
-  /* Background composition layers */
-  --bg-texture-filter: invert(1) grayscale(1) brightness(1.06) contrast(0.95);
-  --bg-scrim-bg: rgba(255, 255, 255, 0.4);
-  --noise-overlay-image: url("/fabric-invert.png");
-  --noise-overlay-blend: multiply;
-  --noise-overlay-opacity: 0.5;
-  --lens-flare-opacity: 0.5;
-
-  /* Clipped-text film mask (hero title, nav labels, company titles).
-     Light = raw grayscale film → dark glyph carries bright scratch
-     detail; dark inverts it so a bright glyph carries dark detail. */
-  --clip-mask-filter: grayscale(1);
-
   /* Résumé CTA — flips to a dark accent on the bright page. */
   --cta-bg: #0a0a0a;
   --cta-fg: #f2f0ea;
   --cta-border: #0a0a0a;
   --cta-bracket: rgba(242, 240, 234, 0.55);
-  --cta-texture-filter: grayscale(1);
-  --cta-texture-blend: screen;
-  --cta-texture-opacity: 0.28;
 }
 
 html[data-palette-mode="dark"] {
@@ -127,23 +45,10 @@ html[data-palette-mode="dark"] {
   --nav-hover-bg: rgba(255, 255, 255, 0.05);
   --about-backdrop-bg: rgba(0, 0, 0, 0.55);
 
-  --bg-texture-filter: brightness(0.9) contrast(0.8);
-  --bg-scrim-bg: rgba(0, 0, 0, 0.22);
-  --noise-overlay-image: url("/fabric.png");
-  --noise-overlay-blend: screen;
-  --noise-overlay-opacity: 0.1;
-  /* 0.35 × 0.85 ≈ 0.30 — 15% more transparent than before (dark only). */
-  --lens-flare-opacity: 0.3;
-
-  --clip-mask-filter: invert(1);
-
   --cta-bg: #ededed;
   --cta-fg: #0a0a0a;
   --cta-border: #d0d0d0;
   --cta-bracket: rgba(10, 10, 10, 0.5);
-  --cta-texture-filter: invert(1);
-  --cta-texture-blend: multiply;
-  --cta-texture-opacity: 0.4;
 }
 
 *,
@@ -156,10 +61,9 @@ html[data-palette-mode="dark"] {
 
 html,
 body {
-  /* Base page tone (warm paper in light, near-black in dark). The fixed
-     .bg-texture layer sits on top and covers it, so this mainly shows
-     through if the texture image fails to load and sets the correct
-     backdrop for overscroll. */
+  /* Solid page background (warm paper in light, near-black navy in dark).
+     This is the only background layer — the former texture/scrim/fabric/
+     lens-flare overlays were removed for a clean flat look. */
   background: var(--page-bg);
   color: var(--fg);
   font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
@@ -167,35 +71,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-}
-
-/* ------------------------------------------------------------------ */
-/* Background layers (texture + scrim) — theme-aware                   */
-/* ------------------------------------------------------------------ */
-
-.bg-texture {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: url("/scratches-dark.jpg");
-  background-size: cover;
-  background-position: center;
-  /* Light: invert the near-black scan into a bright B&W paper. Dark: hold
-     the scratch scan dark. The fabric weave is its own overlay layer so
-     the base never needs lifting for blend room. */
-  filter: var(--bg-texture-filter);
-}
-
-.bg-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  /* Light: white wash for a clean bright paper under the dark display
-     text. Dark: soft black wash for contrast without crushing the
-     charcoal base to pure black. */
-  background: var(--bg-scrim-bg);
 }
 
 body {
@@ -206,6 +81,20 @@ body {
 ::selection {
   background: var(--selection-bg);
   color: var(--selection-fg);
+}
+
+/* Visually hidden but available to assistive tech + crawlers. Used for the
+   real semantic <h1>/intro that backs the stylized visual hero. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ------------------------------------------------------------------ */
@@ -332,31 +221,6 @@ body {
   color: var(--fg-mute);
 }
 
-/* The link text — gets the same inverted-bg clipping mask as the
-   hero title and the company titles, so the same scratched-film
-   texture reads through every piece of bold display copy on the page. */
-.nav-label {
-  position: relative;
-  display: inline-block;
-}
-
-.nav-label::after {
-  content: attr(data-text);
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: url("/bg-3-scratches-leak.jpg");
-  background-size: 150% auto;
-  background-position: right center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  filter: var(--clip-mask-filter);
-}
-
 .nav-arrow {
   font-weight: 400;
   font-size: 1.1em;
@@ -370,9 +234,8 @@ body {
   transform: translate(2px, -2px);
 }
 
-/* CTA — off-white surface with two stacked overlays. Brackets moved
-   inline (in JSX) so ::before / ::after are free for the texture +
-   gradient layers. */
+/* CTA — solid surface with a subtle bottom gradient (::after). Brackets are
+   inline in the JSX. */
 .nav-cta {
   position: relative;
   display: inline-flex;
@@ -397,28 +260,8 @@ body {
   transition: opacity 0.2s ease;
 }
 
-/* Overlay 1 — scratched-film texture, inverted so the surface is
-   mostly white with dark scratch lines. `mix-blend-mode: multiply`
-   over the off-white bg means only the scratch pixels darken
-   anything — bright areas of the texture vanish. */
-.nav-cta::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("/bg-3-scratches-leak.jpg");
-  background-size: 200% auto;
-  background-position: right center;
-  background-repeat: no-repeat;
-  /* Dark: inverted film multiplied onto the off-white button. Light: raw
-     film screened onto the dark button — mirror treatments, both tokens. */
-  filter: var(--cta-texture-filter);
-  opacity: var(--cta-texture-opacity);
-  mix-blend-mode: var(--cta-texture-blend);
-  pointer-events: none;
-}
-
-/* Overlay 2 — bottom-to-top transparent black gradient. Adds a
-   very subtle floor shadow without darkening the surface much. */
+/* Bottom-to-top transparent black gradient. Adds a very subtle floor
+   shadow without darkening the surface much. */
 .nav-cta::after {
   content: "";
   position: absolute;
@@ -781,44 +624,9 @@ body {
   position: relative;
 }
 
-/**
- * Clipping-mask effect — duplicates the visible text via `::after`
- * with `content: attr(data-text)`, paints it with the static scratched-
- * film image (background-clipped to the text glyph shape), inverts the
- * image so the dark surface becomes near-white and the bright scratches
- * become near-black, and stacks it at low opacity over the underlying
- * white text. The result: white text with faint inverted-bg detail
- * showing through the letter shapes.
- *
- * `background-attachment: fixed` ties the image to the viewport, so the
- * portion visible through the text is whatever would be at that viewport
- * coordinate — feels like a window cut into the page.
- */
-/* Line 1 (I'M) — single text, mask on the line itself */
+/* Line 1 (I'M) */
 .hero-line-1 {
   text-align: left;
-}
-
-.hero-line-1::after {
-  content: attr(data-text);
-  position: absolute;
-  inset: 0;
-  box-sizing: border-box;
-  pointer-events: none;
-
-  background-image: url("/bg-3-scratches-leak.jpg");
-  background-size: 150% auto;
-  background-position: right center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-
-  filter: var(--clip-mask-filter);
-  opacity: 1;
 }
 
 /* Line 2 (GABRIEL ... M.) — flex with two fragments. GABRIEL keeps its
@@ -853,36 +661,9 @@ body {
   padding-right: 0;
 }
 
-/* Each fragment gets its own clipping mask scoped to its own letters */
 .hero-line-fragment {
-  position: relative;
   display: inline-block;
   white-space: nowrap;
-}
-
-/* Trailing M. keeps the same hero font-size — fits because hero-line-2's
-   padding-left is now smaller (10 vw) and the flex space-between handles
-   the gap. */
-
-.hero-line-fragment::after {
-  content: attr(data-text);
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-
-  background-image: url("/bg-3-scratches-leak.jpg");
-  background-size: 150% auto;
-  background-position: right center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-
-  filter: var(--clip-mask-filter);
-  opacity: 1;
 }
 
 .apos {
@@ -973,34 +754,11 @@ body {
 
 /* Title — still the visual anchor but ~40 % smaller for proportion */
 .exp-company {
-  position: relative;
   font-size: clamp(30px, 4.5vw, 68px);
   font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 0.96;
   margin-bottom: 8px;
-}
-
-/* Same clipping-mask effect as the hero title — duplicates the visible
-   text via `content: attr(data-text)`, paints it with the inverted
-   static bg image clipped to the letter shapes. The underlying white
-   text stays visible; the inverted scratches read through the glyphs. */
-.exp-company::after {
-  content: attr(data-text);
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: url("/bg-3-scratches-leak.jpg");
-  background-size: 150% auto;
-  background-position: right center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  filter: var(--clip-mask-filter);
-  opacity: 1;
 }
 
 /* Role + dates combined into one meta line saves vertical room */
@@ -1097,12 +855,16 @@ body {
   opacity: 1;
 }
 
+/* Inactive columns are de-emphasized, but kept legible enough that the small
+   label text still meets WCAG AA contrast on the solid background (the active
+   column is set apart by the ring/dot marker, scale-up and brighter line). The
+   stronger past/future fade is carried by `.timeline-line` opacity below. */
 .timeline-col[data-active="false"] {
-  opacity: 0.55;
+  opacity: 0.78;
 }
 
 .timeline-col[data-past="true"][data-active="false"] {
-  opacity: 0.38;
+  opacity: 0.7;
 }
 
 .timeline-col[data-active="true"] {
@@ -1207,7 +969,9 @@ body {
   font-size: clamp(9px, 0.75vw, 11px);
   letter-spacing: 0.2em;
   margin-bottom: 3px;
-  color: var(--fg-mute);
+  /* --fg-soft (not --fg-mute) so this small serial keeps AA contrast even on
+     the dimmed inactive columns. */
+  color: var(--fg-soft);
 }
 
 .timeline-name {
@@ -1338,7 +1102,9 @@ body {
 @keyframes scroll-hint-pulse {
   0%,
   100% {
-    opacity: 0.25;
+    /* Floor kept at 0.5 (paired with the brighter --fg hint color in the
+       mobile block) so even the dimmest pulse frame keeps AA contrast. */
+    opacity: 0.5;
   }
   50% {
     opacity: 1;
@@ -1417,6 +1183,9 @@ body {
     white-space: normal;
     text-align: center;
     line-height: 1.7;
+    /* Full-strength foreground here so the pulsing prompt stays above the AA
+       contrast threshold even at the animation's 0.5-opacity floor. */
+    color: var(--fg);
     /* 0.8s is the canonical retro "press start" blink cadence (the classic
        VGA blink-text attribute toggles at ~2.19 Hz); eased for a soft
        fade instead of a hard on/off. */

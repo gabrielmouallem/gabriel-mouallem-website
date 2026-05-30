@@ -39,9 +39,7 @@ function NavItem({
       <span className="nav-idx" aria-hidden="true">
         {idx} /
       </span>
-      <span className="nav-label" data-text={label}>
-        {label}
-      </span>
+      <span className="nav-label">{label}</span>
       <span className={`nav-arrow ${iconClass ?? ""}`.trim()} aria-hidden="true">
         {icon ?? "↗"}
       </span>

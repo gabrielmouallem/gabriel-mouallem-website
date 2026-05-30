@@ -29,6 +29,8 @@ export function Timeline({
         {experiences.map((exp, i) => {
           const isActive = activeIdx === i;
           const isPast = i < activeIdx;
+          const idx = String(i + 1).padStart(2, "0");
+          const years = extractYears(exp.dates);
           return (
             <button
               key={i}
@@ -40,7 +42,9 @@ export function Timeline({
               data-last={i === N - 1 ? "true" : "false"}
               style={{ left: `${(i / (N - 1)) * 100}%` }}
               onClick={() => onSelect(i)}
-              aria-label={`Jump to ${exp.company}`}
+              // Includes the visible label text (index, name, years) so the
+              // accessible name matches what's shown, then adds intent.
+              aria-label={`${idx} ${exp.shortLabel} ${years} — jump to ${exp.company}`}
             >
               <div
                 className="timeline-label"
@@ -48,13 +52,9 @@ export function Timeline({
                   labelRefs.current[i] = el;
                 }}
               >
-                <div className="timeline-idx">
-                  {String(i + 1).padStart(2, "0")}
-                </div>
+                <div className="timeline-idx">{idx}</div>
                 <div className="timeline-name">{exp.shortLabel}</div>
-                <div className="timeline-years">
-                  {extractYears(exp.dates)}
-                </div>
+                <div className="timeline-years">{years}</div>
               </div>
               <div className="timeline-line" />
             </button>

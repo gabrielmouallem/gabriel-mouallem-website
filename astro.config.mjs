@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 
 import react from '@astrojs/react';
+import sitemap from '@astrojs/sitemap';
 
 // The base path is only applied for the GitHub Pages *project* build, where
 // CI sets ASTRO_BASE=/gabriel-mouallem-website. Local dev and root deploys
@@ -14,5 +15,5 @@ const base = process.env.ASTRO_BASE ?? '/';
 export default defineConfig({
   site: 'https://gabrielmouallem.github.io',
   base,
-  integrations: [react()],
+  integrations: [react(), sitemap()],
 });
