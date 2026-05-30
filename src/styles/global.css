@@ -12,23 +12,46 @@
    same noise (`noise-grain.png`) blended `screen` over the dark base,
    adding light grain.
 
-   The EXACT ElevenLabs setup — their black-alpha noise (`image-set`)
-   blended `overlay` — now works in BOTH modes because each base is held
-   in the mid-tones (see `.bg-texture` / `.bg-scrim`) instead of crushed
-   to pure black / pure white, giving `overlay` room to modulate.
+   THE REAL "tecido" SOURCE: a REGULAR woven dot-lattice — exactly what
+   ElevenLabs bake into their background PNG (verified: their bg is a
+   smooth gradient printed on a regular grid of soft light dots; their
+   noise.png is just subtle random grain on top). Random noise reads as
+   grunge; a REGULAR grid reads as fabric. We rebuild that grid with a
+   repeating radial-gradient (no asset) so it scales crisply.
 
-   NOTE on size: ElevenLabs use a 256px tile (128px on retina) → ~0.5
-   CSS-px grain on a 2x display, which is invisibly fine. We use a larger
-   tile (no retina halving) so the weave is actually perceptible. */
+   Saved as two tileable resources (generated soft woven-dot tile):
+     • `fabric.png`        — light threads → DARK mode via `screen`
+     • `fabric-invert.png` — inverted dark threads → LIGHT mode via `multiply`
+   Same small `--weave` pitch in both modes so the scale matches. */
 .noise-overlay {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  --noise-scale: 1;
+  --weave: 3px; /* thread pitch — smaller = finer fabric */
+  /* Light mode default: inverted (dark) threads, multiplied onto paper. */
+  background-image: url("/fabric-invert.png");
+  background-repeat: repeat;
+  background-size: var(--weave) var(--weave);
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+html[data-palette-mode="dark"] .noise-overlay {
+  /* Dark mode: light threads, screened onto the charcoal base. */
+  background-image: url("/fabric.png");
+  mix-blend-mode: screen;
+  opacity: 0.1;
+}
+
+/* Optional fine film grain ON TOP of the weave — ElevenLabs' actual
+   noise.png role. Kept very subtle so it adds tooth without grunge. */
+.noise-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
   image-rendering: pixelated;
-  background-size: calc(300px * var(--noise-scale));
-  mix-blend-mode: overlay;
   background-image: image-set(
     url("/noise.avif") type("image/avif"),
     url("/noise.png") type("image/png")
@@ -37,7 +60,9 @@
     url("/noise.avif") type("image/avif"),
     url("/noise.png") type("image/png")
   );
-  opacity: 1;
+  background-size: 256px;
+  mix-blend-mode: overlay;
+  opacity: 0.35;
 }
 
 :root {
@@ -101,16 +126,16 @@ html[data-palette-mode="dark"] body {
   background-image: url("/scratches-dark.jpg");
   background-size: cover;
   background-position: center;
-  /* Light mode: invert the near-black scan into a B&W paper grain, but
-     hold it at a LIGHT-GRAY mid-tone (not near-white) so the `overlay`
-     grain has tonal room to read. */
-  filter: invert(1) grayscale(1) brightness(0.86) contrast(0.85);
+  /* Light mode: invert the near-black scan into a bright B&W PAPER. The
+     weave overlay carries its own dark shadow-threads, so the base can
+     stay genuinely light (no need to gray it down for blend room). */
+  filter: invert(1) grayscale(1) brightness(1.06) contrast(0.95);
 }
 
 html[data-palette-mode="dark"] .bg-texture {
-  /* Dark mode: lift the near-black scan to a deep CHARCOAL mid-tone
-     (again, room for `overlay`) while keeping it moody and dark. */
-  filter: brightness(1.9) contrast(0.8);
+  /* Dark mode: scratch scan held dark; the fabric weave is its own
+     overlay layer so the base no longer needs lifting for blend room. */
+  filter: brightness(0.9) contrast(0.8);
 }
 
 .bg-scrim {
@@ -118,9 +143,9 @@ html[data-palette-mode="dark"] .bg-texture {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* Light mode: gentle white wash — kept light so the base stays a
-     mid-tone, not blown to white. */
-  background: rgba(255, 255, 255, 0.18);
+  /* Light mode: white wash to keep it a clean, bright paper under the
+     dark display text. */
+  background: rgba(255, 255, 255, 0.4);
 }
 
 html[data-palette-mode="dark"] .bg-scrim {
