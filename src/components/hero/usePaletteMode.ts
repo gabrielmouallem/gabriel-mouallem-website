@@ -24,8 +24,8 @@ function resolve(pref: PalettePreference): PaletteMode {
 
 /**
  * Palette controller. Behaviour:
- *   • Default dark — with no stored choice the page is dark regardless of the
- *     OS `prefers-color-scheme`.
+ *   • Default system — with no stored choice the page follows the OS
+ *     `prefers-color-scheme` (falling back to dark when it can't be read).
  *   • Three explicit choices — `light`, `dark`, or `system` (follow the OS).
  *     The selection is persisted and survives reloads; the inline head script
  *     reads it back and resolves it before first paint (no flash).
@@ -34,7 +34,7 @@ function resolve(pref: PalettePreference): PaletteMode {
  * including live OS changes while on `system` and across browser tabs.
  */
 export function usePaletteMode() {
-  const [preference, setPreference] = useState<PalettePreference>("dark");
+  const [preference, setPreference] = useState<PalettePreference>("system");
   const preferenceRef = useRef(preference);
   preferenceRef.current = preference;
   const [mode, setMode] = useState<PaletteMode>("dark");
@@ -50,12 +50,12 @@ export function usePaletteMode() {
   // Hydrate the stored preference and resolve it to a concrete mode. (The
   // inline script already painted the right mode; this aligns React state.)
   useEffect(() => {
-    let pref: PalettePreference = "dark";
+    let pref: PalettePreference = "system";
     try {
       const stored = localStorage.getItem(PALETTE_STORAGE_KEY);
       if (isPreference(stored)) pref = stored;
     } catch {
-      /* storage unavailable (private mode) — fall back to dark */
+      /* storage unavailable (private mode) — fall back to system */
     }
     setPreference(pref);
     applyMode(resolve(pref));
@@ -74,11 +74,11 @@ export function usePaletteMode() {
   }, [applyMode]);
 
   // Keep other tabs in sync when the stored choice changes (or is cleared
-  // → back to the dark default).
+  // → back to the system default).
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key !== PALETTE_STORAGE_KEY) return;
-      const pref = isPreference(e.newValue) ? e.newValue : "dark";
+      const pref = isPreference(e.newValue) ? e.newValue : "system";
       setPreference(pref);
       applyMode(resolve(pref));
     };

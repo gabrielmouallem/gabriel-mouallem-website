@@ -83,10 +83,9 @@ const meshBars = [25, 38, 52, 66, 80, 93, 100, 93, 80, 66, 52, 38, 25];
     />
     {/* Resolve the palette mode before first paint to avoid a flash:
         an explicit stored choice wins (light | dark | system); with no choice
-        we default to dark (the OS preference is only consulted when the user
-        explicitly opts into `system`). The matching <html> attribute +
-        theme-color are set synchronously so CSS variables are correct on
-        load. */}
+        we default to system (follow the OS `prefers-color-scheme`). The
+        matching <html> attribute + theme-color are set synchronously so CSS
+        variables are correct on load. */}
     <script is:inline>
       (function () {
         try {
@@ -94,7 +93,7 @@ const meshBars = [25, 38, 52, 66, 80, 93, 100, 93, 80, 66, 52, 38, 25];
           var pref =
             stored === "light" || stored === "dark" || stored === "system"
               ? stored
-              : "dark";
+              : "system";
           var mode =
             pref === "system"
               ? window.matchMedia &&
