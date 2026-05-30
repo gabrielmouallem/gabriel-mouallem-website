@@ -1,25 +1,10 @@
 /* ── Fabric/film grain ────────────────────────────────────────────────
-   A blend has to MATCH its base, and the base MATCHES the mode:
-     • overlay / multiply  = subtract darkness  → needs a LIGHT base
-     • screen  / lighten   = add light          → needs a DARK base
-   So we mirror the ElevenLabs technique per palette mode:
-
-   LIGHT mode (default below): the EXACT ElevenLabs setup — their
-   black-alpha noise (`image-set(avif,png)`) blended `overlay` over the
-   light base, subtracting woven shadow.
-
-   DARK mode (override): the inverse — an opaque grayscale bake of the
-   same noise (`noise-grain.png`) blended `screen` over the dark base,
-   adding light grain.
-
-   THE REAL "tecido" SOURCE: a REGULAR woven dot-lattice — exactly what
-   ElevenLabs bake into their background PNG (verified: their bg is a
-   smooth gradient printed on a regular grid of soft light dots; their
-   noise.png is just subtle random grain on top). Random noise reads as
-   grunge; a REGULAR grid reads as fabric. We rebuild that grid with a
-   repeating radial-gradient (no asset) so it scales crisply.
-
-   Saved as two tileable resources (generated soft woven-dot tile):
+   A woven dot-lattice tile gives the bg a fine fabric tooth. The blend
+   must match its base:
+     • multiply = subtract darkness → LIGHT base (light mode)
+     • screen   = add light         → DARK base  (dark mode)
+   So the tile + blend + opacity all flip per mode via the
+   `--noise-overlay-*` theme tokens:
      • `fabric.png`        — light threads → DARK mode via `screen`
      • `fabric-invert.png` — inverted dark threads → LIGHT mode via `multiply`
    Same small `--weave` pitch in both modes so the scale matches. */
@@ -29,19 +14,13 @@
   z-index: 0;
   pointer-events: none;
   --weave: 3px; /* thread pitch — smaller = finer fabric */
-  /* Light mode default: inverted (dark) threads, multiplied onto paper. */
-  background-image: url("/fabric-invert.png");
+  /* Light: inverted (dark) threads multiplied onto paper.
+     Dark: light threads screened onto the charcoal base. */
+  background-image: var(--noise-overlay-image);
   background-repeat: repeat;
   background-size: var(--weave) var(--weave);
-  mix-blend-mode: multiply;
-  opacity: 0.5;
-}
-
-html[data-palette-mode="dark"] .noise-overlay {
-  /* Dark mode: light threads, screened onto the charcoal base. */
-  background-image: url("/fabric.png");
-  mix-blend-mode: screen;
-  opacity: 0.1;
+  mix-blend-mode: var(--noise-overlay-blend);
+  opacity: var(--noise-overlay-opacity);
 }
 
 /* Optional fine film grain ON TOP of the weave — ElevenLabs' actual
@@ -81,25 +60,59 @@ html[data-palette-mode="dark"] .noise-overlay {
   background-position: center;
   background-repeat: no-repeat;
   mix-blend-mode: lighten;
-  opacity: 0.35;
+  /* Light mode pushes the flare stronger so it reads against the bright page. */
+  opacity: var(--lens-flare-opacity);
 }
 
-/* Light mode — push the flare stronger so it reads against the bright page. */
-html:not([data-palette-mode="dark"]) .lens-flare {
-  opacity: 0.5;
-}
+/* ──────────────────────────────────────────────────────────────────────
+   THEME TOKENS — the ONLY place light/dark diverge.
 
+   Every value that differs between the two palettes is declared here as a
+   custom property: light values on :root, dark values on the
+   `html[data-palette-mode="dark"]` block. Component rules below NEVER
+   branch on the palette mode — they read these tokens. To retune a theme,
+   edit one of these two blocks; there is nothing to hunt for elsewhere.
+   ────────────────────────────────────────────────────────────────────── */
 :root {
+  /* Foreground / selection */
   --fg: #0a0a0a;
   --fg-soft: rgba(10, 10, 10, 0.72);
   --fg-mute: rgba(10, 10, 10, 0.45);
   --fg-faint: rgba(10, 10, 10, 0.28);
   --selection-bg: #0a0a0a;
   --selection-fg: #f5edd8;
+
   /* Hero font size — single source of truth referenced by the hero
      title AND the About modal monogram so both render at identical
-     scale. */
+     scale. (Mode-independent, kept here as the shared root token.) */
   --hero-fs: clamp(64px, 13vw, 220px);
+
+  /* Page + chrome surfaces */
+  --page-bg: #e9e6df;
+  --nav-hover-bg: rgba(0, 0, 0, 0.05);
+  --about-backdrop-bg: rgba(20, 18, 16, 0.32);
+
+  /* Background composition layers */
+  --bg-texture-filter: invert(1) grayscale(1) brightness(1.06) contrast(0.95);
+  --bg-scrim-bg: rgba(255, 255, 255, 0.4);
+  --noise-overlay-image: url("/fabric-invert.png");
+  --noise-overlay-blend: multiply;
+  --noise-overlay-opacity: 0.5;
+  --lens-flare-opacity: 0.5;
+
+  /* Clipped-text film mask (hero title, nav labels, company titles).
+     Light = raw grayscale film → dark glyph carries bright scratch
+     detail; dark inverts it so a bright glyph carries dark detail. */
+  --clip-mask-filter: grayscale(1);
+
+  /* Résumé CTA — flips to a dark accent on the bright page. */
+  --cta-bg: #0a0a0a;
+  --cta-fg: #f2f0ea;
+  --cta-border: #0a0a0a;
+  --cta-bracket: rgba(242, 240, 234, 0.55);
+  --cta-texture-filter: grayscale(1);
+  --cta-texture-blend: screen;
+  --cta-texture-opacity: 0.28;
 }
 
 html[data-palette-mode="dark"] {
@@ -109,6 +122,28 @@ html[data-palette-mode="dark"] {
   --fg-faint: rgba(255, 255, 255, 0.3);
   --selection-bg: #ffffff;
   --selection-fg: #0a0a0a;
+
+  --page-bg: #0a0a18;
+  --nav-hover-bg: rgba(255, 255, 255, 0.05);
+  --about-backdrop-bg: rgba(0, 0, 0, 0.55);
+
+  --bg-texture-filter: brightness(0.9) contrast(0.8);
+  --bg-scrim-bg: rgba(0, 0, 0, 0.22);
+  --noise-overlay-image: url("/fabric.png");
+  --noise-overlay-blend: screen;
+  --noise-overlay-opacity: 0.1;
+  /* 0.35 × 0.85 ≈ 0.30 — 15% more transparent than before (dark only). */
+  --lens-flare-opacity: 0.3;
+
+  --clip-mask-filter: invert(1);
+
+  --cta-bg: #ededed;
+  --cta-fg: #0a0a0a;
+  --cta-border: #d0d0d0;
+  --cta-bracket: rgba(10, 10, 10, 0.5);
+  --cta-texture-filter: invert(1);
+  --cta-texture-blend: multiply;
+  --cta-texture-opacity: 0.4;
 }
 
 *,
@@ -121,21 +156,17 @@ html[data-palette-mode="dark"] {
 
 html,
 body {
-  /* Light-mode base — a warm paper tone. The fixed .bg-texture layer sits
-     on top and covers it, so this mainly shows through if the texture
-     image fails to load and sets the correct backdrop for overscroll. */
-  background: #e9e6df;
+  /* Base page tone (warm paper in light, near-black in dark). The fixed
+     .bg-texture layer sits on top and covers it, so this mainly shows
+     through if the texture image fails to load and sets the correct
+     backdrop for overscroll. */
+  background: var(--page-bg);
   color: var(--fg);
   font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
     monospace;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-}
-
-html[data-palette-mode="dark"],
-html[data-palette-mode="dark"] body {
-  background: #0a0a18;
 }
 
 /* ------------------------------------------------------------------ */
@@ -150,16 +181,10 @@ html[data-palette-mode="dark"] body {
   background-image: url("/scratches-dark.jpg");
   background-size: cover;
   background-position: center;
-  /* Light mode: invert the near-black scan into a bright B&W PAPER. The
-     weave overlay carries its own dark shadow-threads, so the base can
-     stay genuinely light (no need to gray it down for blend room). */
-  filter: invert(1) grayscale(1) brightness(1.06) contrast(0.95);
-}
-
-html[data-palette-mode="dark"] .bg-texture {
-  /* Dark mode: scratch scan held dark; the fabric weave is its own
-     overlay layer so the base no longer needs lifting for blend room. */
-  filter: brightness(0.9) contrast(0.8);
+  /* Light: invert the near-black scan into a bright B&W paper. Dark: hold
+     the scratch scan dark. The fabric weave is its own overlay layer so
+     the base never needs lifting for blend room. */
+  filter: var(--bg-texture-filter);
 }
 
 .bg-scrim {
@@ -167,47 +192,10 @@ html[data-palette-mode="dark"] .bg-texture {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* Light mode: white wash to keep it a clean, bright paper under the
-     dark display text. */
-  background: rgba(255, 255, 255, 0.4);
-}
-
-html[data-palette-mode="dark"] .bg-scrim {
-  /* Dark mode: soft black wash for text contrast without crushing the
-     charcoal base back to pure black. */
-  background: rgba(0, 0, 0, 0.22);
-}
-
-/* Dark mode re-inverts every clipped-text film mask so bold display copy
-   reads as bright glyphs carrying dark scratch detail. Light mode leaves
-   the masks grayscale (dark glyphs, bright detail) — see the individual
-   ::after rules below. */
-html[data-palette-mode="dark"] .nav-label::after,
-html[data-palette-mode="dark"] .hero-line-1::after,
-html[data-palette-mode="dark"] .hero-line-fragment::after,
-html[data-palette-mode="dark"] .exp-company::after {
-  filter: invert(1);
-}
-
-/* Light-mode CTA — flip the off-white button to a dark accent so it keeps
-   strong contrast against the bright page (dark mode keeps the base rule:
-   a light button on the dark page). */
-html:not([data-palette-mode="dark"]) .nav-cta {
-  background: #0a0a0a;
-  color: #f2f0ea;
-  border-color: #0a0a0a;
-}
-
-html:not([data-palette-mode="dark"]) .nav-cta::before {
-  /* Raw (non-inverted) film + screen blend lays bright scratch detail onto
-     the dark button, mirroring the dark-mode multiply-on-light treatment. */
-  filter: grayscale(1);
-  mix-blend-mode: screen;
-  opacity: 0.28;
-}
-
-html:not([data-palette-mode="dark"]) .nav-cta-bracket {
-  color: rgba(242, 240, 234, 0.55);
+  /* Light: white wash for a clean bright paper under the dark display
+     text. Dark: soft black wash for contrast without crushing the
+     charcoal base to pure black. */
+  background: var(--bg-scrim-bg);
 }
 
 body {
@@ -286,13 +274,8 @@ body {
 
 .nav-link:hover,
 .nav-link:focus-visible {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--nav-hover-bg);
   outline: none;
-}
-
-html[data-palette-mode="dark"] .nav-link:hover,
-html[data-palette-mode="dark"] .nav-link:focus-visible {
-  background: rgba(255, 255, 255, 0.05);
 }
 
 /* Button-styled nav item — only reset what the UA adds on <button>
@@ -371,9 +354,7 @@ html[data-palette-mode="dark"] .nav-link:focus-visible {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  /* Light mode: raw (grayscale) film so the dark glyph carries bright
-     scratch detail. Dark mode inverts it (see override block below). */
-  filter: grayscale(1);
+  filter: var(--clip-mask-filter);
 }
 
 .nav-arrow {
@@ -400,17 +381,18 @@ html[data-palette-mode="dark"] .nav-link:focus-visible {
   margin-left: auto;
   padding: 0 22px;
 
-  /* Off-white instead of pure #fff — reads softer, less "marketing
-     button". Border tone matches the surface. */
-  background: #ededed;
-  color: #0a0a0a;
+  /* Dark mode: off-white surface (softer than pure #fff) with a dark
+     label. Light mode: flips to a dark accent button so it keeps strong
+     contrast against the bright page. Both live in the CTA tokens. */
+  background: var(--cta-bg);
+  color: var(--cta-fg);
   font-size: clamp(11px, 0.85vw, 13px);
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   text-decoration: none;
 
-  border: 1px solid #d0d0d0;
+  border: 1px solid var(--cta-border);
   overflow: hidden;
   transition: opacity 0.2s ease;
 }
@@ -427,9 +409,11 @@ html[data-palette-mode="dark"] .nav-link:focus-visible {
   background-size: 200% auto;
   background-position: right center;
   background-repeat: no-repeat;
-  filter: invert(1);
-  opacity: 0.4;
-  mix-blend-mode: multiply;
+  /* Dark: inverted film multiplied onto the off-white button. Light: raw
+     film screened onto the dark button — mirror treatments, both tokens. */
+  filter: var(--cta-texture-filter);
+  opacity: var(--cta-texture-opacity);
+  mix-blend-mode: var(--cta-texture-blend);
   pointer-events: none;
 }
 
@@ -455,7 +439,7 @@ html[data-palette-mode="dark"] .nav-link:focus-visible {
 
 .nav-cta-bracket {
   font-weight: 400;
-  color: rgba(10, 10, 10, 0.5);
+  color: var(--cta-bracket);
 }
 
 .nav-cta-arrow {
@@ -485,12 +469,8 @@ html[data-palette-mode="dark"] .nav-link:focus-visible {
   padding: 4vh 4vw;
   /* Dim the page behind the modal so the light card separates cleanly in
      both palettes (otherwise it floats invisibly over the light theme). */
-  background: rgba(20, 18, 16, 0.32);
+  background: var(--about-backdrop-bg);
   animation: about-fade-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-html[data-palette-mode="dark"] .about-backdrop {
-  background: rgba(0, 0, 0, 0.55);
 }
 
 @keyframes about-fade-in {
@@ -675,9 +655,12 @@ html[data-palette-mode="dark"] .about-backdrop {
     padding: 0 14px;
     letter-spacing: 0.1em;
   }
-  /* Hide secondary links on small screens, keep only Email + CTA */
-  .nav-link:nth-child(1),
-  .nav-link:nth-child(2) {
+  /* On small screens the About modal already surfaces LinkedIn, GitHub,
+     email and the CV download — so it covers every other link. Collapse
+     the individual links to just About (the resume CTA stays). */
+  .nav-link:nth-child(2),
+  .nav-link:nth-child(3),
+  .nav-link:nth-child(4) {
     display: none;
   }
 }
@@ -834,7 +817,7 @@ html[data-palette-mode="dark"] .about-backdrop {
   -webkit-text-fill-color: transparent;
   color: transparent;
 
-  filter: grayscale(1);
+  filter: var(--clip-mask-filter);
   opacity: 1;
 }
 
@@ -898,7 +881,7 @@ html[data-palette-mode="dark"] .about-backdrop {
   -webkit-text-fill-color: transparent;
   color: transparent;
 
-  filter: grayscale(1);
+  filter: var(--clip-mask-filter);
   opacity: 1;
 }
 
@@ -1016,7 +999,7 @@ html[data-palette-mode="dark"] .about-backdrop {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  filter: grayscale(1);
+  filter: var(--clip-mask-filter);
   opacity: 1;
 }
 
@@ -1343,6 +1326,25 @@ html[data-palette-mode="dark"] .about-backdrop {
   color: var(--fg-soft);
 }
 
+/* Hidden while the About modal is open (set from React). Kept as a
+   data-attribute rather than inline opacity so the mobile pulse animation
+   can be cleanly disabled when hidden. */
+.scroll-hint[data-hidden="true"] {
+  opacity: 0;
+}
+
+/* "Press start" pulse — used on mobile where the hint sits between the
+   title and the timeline. */
+@keyframes scroll-hint-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Responsive tweaks                                                   */
 /* ------------------------------------------------------------------ */
@@ -1354,7 +1356,9 @@ html[data-palette-mode="dark"] .about-backdrop {
 
   .exp-panels {
     right: 4.5vw;
-    top: 16vh;
+    /* Nudged up from 16vh (~2vh ≈ a dozen-ish px on a phone) so the title
+       and description sit a little higher in the mobile viewport. */
+    top: 14vh;
   }
 
   .arrow {
@@ -1372,8 +1376,64 @@ html[data-palette-mode="dark"] .about-backdrop {
     font-size: 10px;
   }
 
+  /* On mobile the active company name already reads in the panel title
+     above, so drop the redundant job name from the timeline marker —
+     leaving just the index number over the vertical line. */
+  .timeline-name,
   .timeline-years {
     display: none;
+  }
+
+  /* With only the index number left, the old 72/106px line offset (sized
+     for the 3-line label) leaves a big gap. Pull the line right up under
+     the counter. Both selectors override the odd + even (zigzag) defaults. */
+  .timeline-line,
+  .timeline-col:nth-child(even) .timeline-line {
+    top: 26px;
+  }
+
+  /* Expand the tap target. The column box is 0-width (just the line), so
+     without the company label there's almost nothing to hit. Add a
+     transparent, full-height strip ~one inter-column gap wide (timeline
+     spans 91vw / 6 gaps ≈ 15vw each), centered on the line, so the whole
+     region between neighbours is clickable. Visuals are untouched. */
+  .timeline-col::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 16vw;
+    transform: translateX(-50%);
+  }
+
+  /* Move the scroll hint up into the band between the hero title and the
+     timeline, let it wrap to multiple lines, and pulse it like a
+     videogame "press start" prompt. */
+  .scroll-hint {
+    top: 41vh;
+    bottom: auto;
+    max-width: 62vw;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.7;
+    /* 0.8s is the canonical retro "press start" blink cadence (the classic
+       VGA blink-text attribute toggles at ~2.19 Hz); eased for a soft
+       fade instead of a hard on/off. */
+    animation: scroll-hint-pulse 0.8s ease-in-out infinite;
+  }
+
+  /* Don't pulse while hidden (About modal open) — let opacity:0 win. */
+  .scroll-hint[data-hidden="true"] {
+    animation: none;
+  }
+
+  /* Mobile-only: the hint belongs to the hero. Once the experiences are
+     on screen, fade it away (and stop the pulse). On the hero it fades
+     back in. Desktop keeps the persistent bottom hint. */
+  .scroll-hint[data-in-timeline="true"] {
+    opacity: 0;
+    animation: none;
   }
 }
 
@@ -1382,10 +1442,6 @@ html[data-palette-mode="dark"] .about-backdrop {
 /* ------------------------------------------------------------------ */
 
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track {
-    animation: none;
-  }
-
   .hero-stage {
     height: auto;
     min-height: 100vh;
@@ -1404,5 +1460,9 @@ html[data-palette-mode="dark"] .about-backdrop {
     opacity: 1;
     transform: none;
     margin-bottom: 48px;
+  }
+
+  .scroll-hint {
+    animation: none;
   }
 }

@@ -16,8 +16,11 @@ export const SITE = {
   links: {
     linkedin: "https://www.linkedin.com/in/gabriel-mouallem/",
     github: "https://github.com/gabrielmouallem",
-    resume: "/Gabriel-Mouallem-Resume.pdf",
+    resume: "/Gabriel_Mouallem_Product_Engineer_Resume.pdf",
   },
   /** Suggested filename for the résumé download attribute. */
-  resumeFileName: "Gabriel-Mouallem-Resume.pdf",
+  resumeFileName: "Gabriel_Mouallem_Product_Engineer_Resume.pdf",
+  /** Standardized download CTA copy — reused by the nav button and the
+   * About modal so the wording stays in sync everywhere. */
+  resumeLabel: "Download CV",
 } as const;
