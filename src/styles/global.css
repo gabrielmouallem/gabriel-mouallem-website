@@ -65,6 +65,25 @@ html[data-palette-mode="dark"] .noise-overlay {
   opacity: 0.35;
 }
 
+/* ── Lens flare ───────────────────────────────────────────────────────
+   A full-bleed lens-flare photo composited on TOP of the whole page.
+   `screen` blend keeps only the bright streaks (black areas vanish) and a
+   low opacity keeps the effect as a faint optical glow. Sits above all
+   content with pointer-events disabled so it never intercepts clicks. */
+.lens-flare {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background-image: url("/lens-flare.png");
+  /* Stretch the whole flare to fit the viewport exactly (no cropping). */
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  mix-blend-mode: lighten;
+  opacity: 0.35;
+}
+
 :root {
   --fg: #0a0a0a;
   --fg-soft: rgba(10, 10, 10, 0.72);
