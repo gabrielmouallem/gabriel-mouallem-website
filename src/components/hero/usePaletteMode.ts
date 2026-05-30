@@ -34,7 +34,7 @@ function resolve(pref: PalettePreference): PaletteMode {
  * including live OS changes while on `system` and across browser tabs.
  */
 export function usePaletteMode() {
-  const [preference, setPreference] = useState<PalettePreference>("system");
+  const [preference, setPreference] = useState<PalettePreference>("dark");
   const preferenceRef = useRef(preference);
   preferenceRef.current = preference;
   const [mode, setMode] = useState<PaletteMode>("dark");
@@ -50,7 +50,7 @@ export function usePaletteMode() {
   // Hydrate the stored preference and resolve it to a concrete mode. (The
   // inline script already painted the right mode; this aligns React state.)
   useEffect(() => {
-    let pref: PalettePreference = "system";
+    let pref: PalettePreference = "dark";
     try {
       const stored = localStorage.getItem(PALETTE_STORAGE_KEY);
       if (isPreference(stored)) pref = stored;
@@ -78,7 +78,7 @@ export function usePaletteMode() {
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key !== PALETTE_STORAGE_KEY) return;
-      const pref = isPreference(e.newValue) ? e.newValue : "system";
+      const pref = isPreference(e.newValue) ? e.newValue : "dark";
       setPreference(pref);
       applyMode(resolve(pref));
     };
