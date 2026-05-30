@@ -1,3 +1,50 @@
+/* ── Fabric/film grain ────────────────────────────────────────────────
+   A blend has to MATCH its base, and the base MATCHES the mode:
+     • overlay / multiply  = subtract darkness  → needs a LIGHT base
+     • screen  / lighten   = add light          → needs a DARK base
+   So we mirror the ElevenLabs technique per palette mode:
+
+   LIGHT mode (default below): the EXACT ElevenLabs setup — their
+   black-alpha noise (`image-set(avif,png)`) blended `overlay` over the
+   light base, subtracting woven shadow.
+
+   DARK mode (override): the inverse — an opaque grayscale bake of the
+   same noise (`noise-grain.png`) blended `screen` over the dark base,
+   adding light grain.
+
+   Both: 256px tile (128px retina) + `image-rendering: pixelated`. */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  --noise-scale: 1;
+  image-rendering: pixelated;
+  background-size: calc(256px * var(--noise-scale));
+  mix-blend-mode: overlay;
+  background-image: image-set(
+    url("/noise.avif") type("image/avif"),
+    url("/noise.png") type("image/png")
+  );
+  background-image: -webkit-image-set(
+    url("/noise.avif") type("image/avif"),
+    url("/noise.png") type("image/png")
+  );
+  opacity: 1;
+}
+
+html[data-palette-mode="dark"] .noise-overlay {
+  mix-blend-mode: screen;
+  background-image: url("/noise-grain.png");
+  opacity: 0.24;
+}
+
+@media (min-resolution: 2x) {
+  .noise-overlay {
+    background-size: calc(128px * var(--noise-scale));
+  }
+}
+
 :root {
   --fg: #0a0a0a;
   --fg-soft: rgba(10, 10, 10, 0.72);
@@ -30,7 +77,10 @@ html[data-palette-mode="dark"] {
 
 html,
 body {
-  background: #14a3d6;
+  /* Light-mode base — a warm paper tone. The fixed .bg-texture layer sits
+     on top and covers it, so this mainly shows through if the texture
+     image fails to load and sets the correct backdrop for overscroll. */
+  background: #e9e6df;
   color: var(--fg);
   font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
     monospace;
@@ -42,6 +92,72 @@ body {
 html[data-palette-mode="dark"],
 html[data-palette-mode="dark"] body {
   background: #0a0a18;
+}
+
+/* ------------------------------------------------------------------ */
+/* Background layers (texture + scrim) — theme-aware                   */
+/* ------------------------------------------------------------------ */
+
+.bg-texture {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("/scratches-dark.jpg");
+  background-size: cover;
+  background-position: center;
+  /* Light mode: invert the near-black scan into a bright surface and
+     desaturate it to a pure black-and-white paper grain. */
+  filter: invert(1) grayscale(1) brightness(1.08) contrast(0.92);
+}
+
+html[data-palette-mode="dark"] .bg-texture {
+  filter: brightness(0.82) contrast(1.05);
+}
+
+.bg-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* Light mode: soft white wash to lift contrast under dark text. */
+  background: rgba(255, 255, 255, 0.42);
+}
+
+html[data-palette-mode="dark"] .bg-scrim {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* Dark mode re-inverts every clipped-text film mask so bold display copy
+   reads as bright glyphs carrying dark scratch detail. Light mode leaves
+   the masks grayscale (dark glyphs, bright detail) — see the individual
+   ::after rules below. */
+html[data-palette-mode="dark"] .nav-label::after,
+html[data-palette-mode="dark"] .hero-line-1::after,
+html[data-palette-mode="dark"] .hero-line-fragment::after,
+html[data-palette-mode="dark"] .exp-company::after {
+  filter: invert(1);
+}
+
+/* Light-mode CTA — flip the off-white button to a dark accent so it keeps
+   strong contrast against the bright page (dark mode keeps the base rule:
+   a light button on the dark page). */
+html:not([data-palette-mode="dark"]) .nav-cta {
+  background: #0a0a0a;
+  color: #f2f0ea;
+  border-color: #0a0a0a;
+}
+
+html:not([data-palette-mode="dark"]) .nav-cta::before {
+  /* Raw (non-inverted) film + screen blend lays bright scratch detail onto
+     the dark button, mirroring the dark-mode multiply-on-light treatment. */
+  filter: grayscale(1);
+  mix-blend-mode: screen;
+  opacity: 0.28;
+}
+
+html:not([data-palette-mode="dark"]) .nav-cta-bracket {
+  color: rgba(242, 240, 234, 0.55);
 }
 
 body {
@@ -120,8 +236,13 @@ body {
 
 .nav-link:hover,
 .nav-link:focus-visible {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.05);
   outline: none;
+}
+
+html[data-palette-mode="dark"] .nav-link:hover,
+html[data-palette-mode="dark"] .nav-link:focus-visible {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 /* Button-styled nav item — only reset what the UA adds on <button>
@@ -200,7 +321,9 @@ body {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  filter: invert(1);
+  /* Light mode: raw (grayscale) film so the dark glyph carries bright
+     scratch detail. Dark mode inverts it (see override block below). */
+  filter: grayscale(1);
 }
 
 .nav-arrow {
@@ -310,7 +433,14 @@ body {
   align-items: center;
   justify-content: center;
   padding: 4vh 4vw;
+  /* Dim the page behind the modal so the light card separates cleanly in
+     both palettes (otherwise it floats invisibly over the light theme). */
+  background: rgba(20, 18, 16, 0.32);
   animation: about-fade-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+html[data-palette-mode="dark"] .about-backdrop {
+  background: rgba(0, 0, 0, 0.55);
 }
 
 @keyframes about-fade-in {
@@ -506,17 +636,89 @@ body {
 /* Plus cluster                                                        */
 /* ------------------------------------------------------------------ */
 
-.plus-cluster {
+/* Sliding sun/moon switch — occupies the top-right slot the decorative
+   plus-cluster used to hold. */
+.palette-toggle {
   position: absolute;
   top: 7.5vh;
   right: 5vw;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px 12px;
-  font-size: clamp(18px, 1.6vw, 26px);
-  font-weight: 700;
-  line-height: 1;
-  z-index: 3;
+  z-index: 4;
+  display: inline-flex;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.palette-toggle:focus-visible {
+  outline: none;
+}
+
+.palette-toggle-track {
+  position: relative;
+  display: inline-block;
+  width: 70px;
+  height: 32px;
+  /* Squared + dashed to match the nav's grungy editorial separators
+     (.nav-link border-right: 1px dashed). No border-radius — hard corners. */
+  border: 1px dashed var(--fg-mute);
+  border-radius: 0;
+  /* Neutral mid-gray tint reads on both the light paper and the dark field. */
+  background: rgba(127, 127, 127, 0.08);
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.palette-toggle:hover .palette-toggle-track,
+.palette-toggle:focus-visible .palette-toggle-track {
+  border-color: var(--fg-mute);
+}
+
+/* Filled knob — slides between the two icons. Sits BELOW the icons so the
+   icon it parks under stays visible and flips to the contrast tone. */
+.palette-toggle-knob {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 26px;
+  height: 24px;
+  /* Squared knob (no radius) to echo the hard-cornered nav chrome. */
+  border-radius: 0;
+  background: var(--fg);
+  transform: translate(0, -50%);
+  transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.3s ease;
+}
+
+.palette-toggle[data-mode="dark"] .palette-toggle-knob {
+  transform: translate(36px, -50%);
+}
+
+.palette-toggle-icon {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  color: var(--fg-mute);
+  transition: color 0.3s ease;
+}
+
+.palette-toggle-icon--sun {
+  left: 9px;
+}
+
+.palette-toggle-icon--moon {
+  right: 9px;
+}
+
+/* The icon the knob is parked under flips to the knob's contrast tone. */
+.palette-toggle[data-mode="light"] .palette-toggle-icon--sun,
+.palette-toggle[data-mode="dark"] .palette-toggle-icon--moon {
+  color: var(--selection-fg);
 }
 
 /* ------------------------------------------------------------------ */
@@ -581,7 +783,7 @@ body {
   -webkit-text-fill-color: transparent;
   color: transparent;
 
-  filter: invert(1);
+  filter: grayscale(1);
   opacity: 1;
 }
 
@@ -645,7 +847,7 @@ body {
   -webkit-text-fill-color: transparent;
   color: transparent;
 
-  filter: invert(1);
+  filter: grayscale(1);
   opacity: 1;
 }
 
@@ -716,7 +918,7 @@ body {
   line-height: 1.22;
   letter-spacing: 0;
   text-align: right;
-  color: rgba(255, 255, 255, 0.68);
+  color: var(--fg-soft);
   /* Slight rotation gives it the handwritten "stuck on the page" feel */
   transform: translate(10px, 6px) rotate(-2.5deg);
   opacity: 0;
@@ -763,7 +965,7 @@ body {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  filter: invert(1);
+  filter: grayscale(1);
   opacity: 1;
 }
 

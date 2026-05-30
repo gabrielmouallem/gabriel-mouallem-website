@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, useEffect } from "react";
+import { useCallback, useLayoutEffect, useRef, useState, useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
@@ -11,6 +11,93 @@ const MARQUEE_TEXT =
   "product & software engineer  —  full-stack  —  kubernetes  —  cloud native  —  ";
 
 const HERO_PHASE_END = 0.06;
+
+type PaletteMode = "light" | "dark";
+
+const PALETTE_STORAGE_KEY = "palette-mode";
+
+function readStoredMode(): PaletteMode | null {
+  try {
+    const v = localStorage.getItem(PALETTE_STORAGE_KEY);
+    return v === "light" || v === "dark" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Palette-mode controller. Behaviour:
+ *   • Persist — an explicit toggle is written to localStorage and survives
+ *     reloads (the inline head script reads it back before first paint).
+ *   • Respect system preference — with no stored choice, the OS
+ *     `prefers-color-scheme` decides, and the page live-follows OS changes.
+ *   • Override — once the user toggles, the stored value wins and OS changes
+ *     are ignored until storage is cleared.
+ * The inline script is the source of truth on first paint (no flash); this
+ * hook hydrates from the attribute it set and then keeps everything in sync.
+ */
+function usePaletteMode() {
+  const [mode, setMode] = useState<PaletteMode>("dark");
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
+
+  const applyMode = useCallback((next: PaletteMode, persist: boolean) => {
+    setMode(next);
+    document.documentElement.dataset.paletteMode = next;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta)
+      meta.setAttribute("content", next === "light" ? "#e9e6df" : "#020308");
+    if (persist) {
+      try {
+        localStorage.setItem(PALETTE_STORAGE_KEY, next);
+      } catch {
+        /* storage unavailable (private mode) — non-fatal */
+      }
+    }
+  }, []);
+
+  // Hydrate from the attribute the inline script already resolved.
+  useEffect(() => {
+    const current = document.documentElement.dataset.paletteMode;
+    if (current === "light" || current === "dark") setMode(current);
+  }, []);
+
+  // Live-follow the OS preference — but only while there's no explicit
+  // stored override.
+  useEffect(() => {
+    const mql = window.matchMedia("(prefers-color-scheme: light)");
+    const onChange = (e: MediaQueryListEvent) => {
+      if (readStoredMode()) return; // user override wins
+      applyMode(e.matches ? "light" : "dark", false);
+    };
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, [applyMode]);
+
+  // Keep other tabs in sync when the stored choice changes (or is cleared).
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== PALETTE_STORAGE_KEY) return;
+      if (e.newValue === "light" || e.newValue === "dark") {
+        applyMode(e.newValue, false);
+      } else {
+        // Choice cleared elsewhere → fall back to the live OS preference.
+        const prefersLight = window.matchMedia(
+          "(prefers-color-scheme: light)",
+        ).matches;
+        applyMode(prefersLight ? "light" : "dark", false);
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [applyMode]);
+
+  const toggleMode = useCallback(() => {
+    applyMode(modeRef.current === "dark" ? "light" : "dark", true);
+  }, [applyMode]);
+
+  return { mode, toggleMode };
+}
 
 export default function Hero() {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -169,6 +256,9 @@ export default function Hero() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // --- Palette mode (light / dark) -------------------------------------
+  const { mode, toggleMode } = usePaletteMode();
+
   // --- About modal ------------------------------------------------------
   const [aboutOpen, setAboutOpen] = useState(false);
 
@@ -235,7 +325,7 @@ export default function Hero() {
       <div ref={stageRef} className="hero-stage">
         <Nav onAbout={() => setAboutOpen(true)} />
         {aboutOpen && <About onClose={() => setAboutOpen(false)} />}
-        <PlusCluster />
+        <PaletteToggle mode={mode} onToggle={toggleMode} />
 
         <div
           className="hero-title"
@@ -497,6 +587,81 @@ function Nav({ onAbout }: { onAbout: () => void }) {
   );
 }
 
+/**
+ * Sliding light/dark switch — sits in the top-right where the decorative
+ * plus-cluster used to be. A pill track with a sun on the left and a moon
+ * on the right; the filled knob slides to the active side and the icon it
+ * covers flips to the contrast tone.
+ */
+function PaletteToggle({
+  mode,
+  onToggle,
+}: {
+  mode: PaletteMode;
+  onToggle: () => void;
+}) {
+  const isDark = mode === "dark";
+  return (
+    <button
+      type="button"
+      className="palette-toggle"
+      data-mode={mode}
+      role="switch"
+      aria-checked={isDark}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      onClick={onToggle}
+    >
+      <span className="palette-toggle-track" aria-hidden="true">
+        <span className="palette-toggle-knob" />
+        <span className="palette-toggle-icon palette-toggle-icon--sun">
+          <SunIcon />
+        </span>
+        <span className="palette-toggle-icon palette-toggle-icon--moon">
+          <MoonIcon />
+        </span>
+      </span>
+    </button>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
+
 function CopyIcon() {
   return (
     <svg
@@ -626,16 +791,6 @@ function About({ onClose }: { onClose: () => void }) {
           © 2026 {SITE.name}. All rights reserved.
         </p>
       </div>
-    </div>
-  );
-}
-
-function PlusCluster() {
-  return (
-    <div className="plus-cluster" aria-hidden="true">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <span key={i}>+</span>
-      ))}
     </div>
   );
 }
