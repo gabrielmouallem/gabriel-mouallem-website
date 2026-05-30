@@ -274,33 +274,57 @@ function extractYears(dates: string): string {
 }
 
 function Nav() {
+  const links = [
+    {
+      idx: "01",
+      label: "LinkedIn",
+      href: "https://www.linkedin.com/in/gabrielmouallem",
+      external: true,
+    },
+    {
+      idx: "02",
+      label: "GitHub",
+      href: "https://github.com/gabrielmouallem",
+      external: true,
+    },
+    {
+      idx: "03",
+      label: "Email",
+      href: "mailto:gabriel.unifei2017@gmail.com",
+      external: false,
+    },
+  ];
   return (
     <nav className="topnav" aria-label="Primary">
-      <a
-        className="nav-link"
-        href="https://www.linkedin.com/in/gabrielmouallem"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        LinkedIn
-      </a>
-      <a
-        className="nav-link"
-        href="https://github.com/gabrielmouallem"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        GitHub
-      </a>
-      <a className="nav-link" href="mailto:gabriel.unifei2017@gmail.com">
-        Email
-      </a>
+      {links.map((l) => (
+        <a
+          key={l.idx}
+          className="nav-link"
+          href={l.href}
+          {...(l.external
+            ? { target: "_blank", rel: "noopener noreferrer" }
+            : {})}
+        >
+          <span className="nav-idx" aria-hidden="true">
+            {l.idx} /
+          </span>
+          <span className="nav-label" data-text={l.label}>
+            {l.label}
+          </span>
+          <span className="nav-arrow" aria-hidden="true">
+            ↗
+          </span>
+        </a>
+      ))}
       <a
         className="nav-cta"
         href="/Gabriel-Mouallem-Resume.pdf"
         download="Gabriel-Mouallem-Resume.pdf"
       >
-        Download Resume <span aria-hidden="true">↓</span>
+        <span className="nav-cta-label">Download Resume</span>
+        <span className="nav-cta-arrow" aria-hidden="true">
+          ↓
+        </span>
       </a>
     </nav>
   );

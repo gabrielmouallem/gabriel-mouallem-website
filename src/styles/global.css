@@ -91,6 +91,7 @@ body {
 .nav-link {
   display: inline-flex;
   align-items: center;
+  gap: 10px;
   padding: 0 22px;
   font-size: clamp(11px, 0.85vw, 13px);
   font-weight: 700;
@@ -98,42 +99,118 @@ body {
   text-transform: uppercase;
   color: var(--fg);
   text-decoration: none;
-  border-right: 1px solid var(--fg-faint);
-  transition: background 0.2s ease, color 0.2s ease;
+  /* Dashed separator picks up the rustic / editorial language and
+     reads softer than a solid line. */
+  border-right: 1px dashed var(--fg-mute);
+  transition: background 0.2s ease;
 }
 
 .nav-link:first-child {
-  border-left: 1px solid var(--fg-faint);
+  border-left: 1px dashed var(--fg-mute);
 }
 
 .nav-link:hover,
 .nav-link:focus-visible {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
   outline: none;
 }
 
+/* Dimmed serial number that echoes the timeline indices (01 — 07) */
+.nav-idx {
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--fg-mute);
+}
+
+/* The link text — gets the same inverted-bg clipping mask as the
+   hero title and the company titles, so the same scratched-film
+   texture reads through every piece of bold display copy on the page. */
+.nav-label {
+  position: relative;
+  display: inline-block;
+}
+
+.nav-label::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("/bg-3-scratches-leak.jpg");
+  background-size: 150% auto;
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: invert(1);
+}
+
+.nav-arrow {
+  font-weight: 400;
+  font-size: 1.1em;
+  line-height: 1;
+  color: var(--fg-soft);
+  transition: transform 0.2s ease;
+}
+
+.nav-link:hover .nav-arrow,
+.nav-link:focus-visible .nav-arrow {
+  transform: translate(2px, -2px);
+}
+
+/* CTA — instead of a clean white block, paints the same scratched-film
+   image as its background (un-inverted). The dark grain becomes the
+   surface, white text + bracket ornaments sit on top. Reads as part
+   of the page's film aesthetic, not a marketing button.            */
 .nav-cta {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   margin-left: auto;
-  padding: 0 26px;
-  /* Light bg + dark text — stands out vs the plain nav links */
-  background: var(--fg);
-  color: #0a0a0a;
+  padding: 0 22px;
+
+  background-color: #020308;
+  background-image: url("/bg-3-scratches-leak.jpg");
+  background-size: 150% auto;
+  background-position: right center;
+  background-repeat: no-repeat;
+
+  color: var(--fg);
   font-size: clamp(11px, 0.85vw, 13px);
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   text-decoration: none;
-  border-left: 1px solid var(--fg-faint);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+
+  border: 1px solid var(--fg-mute);
+  transition: opacity 0.2s ease;
+}
+
+/* `[ … ]` bracket ornaments echo the editorial/brutalist tone */
+.nav-cta::before,
+.nav-cta::after {
+  content: "[";
+  font-weight: 400;
+  color: var(--fg-soft);
+}
+
+.nav-cta::after {
+  content: "]";
 }
 
 .nav-cta:hover,
 .nav-cta:focus-visible {
   opacity: 0.88;
   outline: none;
+}
+
+.nav-cta-arrow {
+  font-weight: 400;
+  font-size: 1.1em;
+  line-height: 1;
 }
 
 @media (max-width: 720px) {
