@@ -168,36 +168,6 @@ export default function Hero() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // --- Hash deep-linking -------------------------------------------------
-  // On mount: if URL has #<slug>, scroll to that experience after ScrollTrigger
-  // is ready. On activeIdx change: update the URL hash (or clear it on home).
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const hash = decodeURIComponent(window.location.hash.replace(/^#/, ""));
-    if (!hash) return;
-    const idx = experiences.findIndex((e) => e.slug === hash);
-    if (idx < 0) return;
-    // Wait a tick so ScrollTrigger has measured the pin range.
-    const t = window.setTimeout(() => scrollTo(idx), 120);
-    return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (activeIdx < 0) {
-      // home — drop the hash without scrolling
-      if (window.location.hash) {
-        history.replaceState(null, "", window.location.pathname + window.location.search);
-      }
-    } else {
-      const slug = experiences[activeIdx]?.slug;
-      if (slug) {
-        history.replaceState(null, "", `#${slug}`);
-      }
-    }
-  }, [activeIdx]);
-
   // --- About modal ------------------------------------------------------
   const [aboutOpen, setAboutOpen] = useState(false);
 
@@ -209,6 +179,55 @@ export default function Hero() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [aboutOpen]);
+
+  // --- Hash deep-linking ------------------------------------------------
+  // Hash priority:
+  //   #about      → open modal (no scroll)
+  //   #<slug>     → scroll to that experience
+  //   no hash     → home / current
+  // On activeIdx OR aboutOpen change, we rewrite the hash to match current
+  // state without creating new history entries.
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = decodeURIComponent(window.location.hash.replace(/^#/, ""));
+    if (!hash) return;
+    if (hash === "about") {
+      setAboutOpen(true);
+      return;
+    }
+    const idx = experiences.findIndex((e) => e.slug === hash);
+    if (idx < 0) return;
+    // Wait a tick so ScrollTrigger has measured the pin range.
+    const t = window.setTimeout(() => scrollTo(idx), 120);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    // About takes precedence — its hash overrides whatever experience
+    // the scroll is on.
+    if (aboutOpen) {
+      history.replaceState(null, "", "#about");
+      return;
+    }
+    if (activeIdx < 0) {
+      // home — drop the hash without scrolling
+      if (window.location.hash) {
+        history.replaceState(
+          null,
+          "",
+          window.location.pathname + window.location.search,
+        );
+      }
+    } else {
+      const slug = experiences[activeIdx]?.slug;
+      if (slug) {
+        history.replaceState(null, "", `#${slug}`);
+      }
+    }
+  }, [activeIdx, aboutOpen]);
 
   return (
     <div ref={wrapperRef} className="hero-wrapper">
@@ -314,6 +333,12 @@ export default function Hero() {
           </div>
         </div>
 
+        <div
+          className="scroll-hint"
+          style={{ opacity: aboutOpen ? 0 : 1 }}
+        >
+          scroll or click to walk through 7 years
+        </div>
       </div>
     </div>
   );
@@ -410,7 +435,13 @@ function Nav({ onAbout }: { onAbout: () => void }) {
 
   return (
     <nav className="topnav" aria-label="Primary">
-      <NavItem idx="01" label="About" onClick={onAbout} />
+      <NavItem
+        idx="01"
+        label="About"
+        onClick={onAbout}
+        icon="+"
+        iconClass="nav-arrow--plus"
+      />
       <NavItem
         idx="02"
         label="LinkedIn"
@@ -493,10 +524,9 @@ function About({ onClose }: { onClose: () => void }) {
             <h3 className="about-h">About</h3>
             <ul className="about-list">
               <li>Product/customer-oriented problem solver</li>
-              <li>~6 years across IoT, AI/video, cloud infrastructure</li>
+              <li>~7 years across IoT, AI/video, cloud infrastructure</li>
               <li>
-                Currently building Managed PostgreSQL DBaaS on Kubernetes at
-                Latitude.sh
+                Currently on Stealth AI Company, hybrid from San Francisco
               </li>
               <li>Testing-first culture, BDD advocate</li>
             </ul>
@@ -568,15 +598,12 @@ function About({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="about-monogram" aria-hidden="true">
-          <span>GABRIEL</span>
-          <span>M.</span>
+          <span className="about-monogram-name">GABRIEL M.</span>
+          <span className="about-monogram-fill" aria-hidden="true" />
         </div>
 
         <div className="about-subline" aria-hidden="true">
-          <span>SOFTWARE</span>
-          <span>&amp;</span>
-          <span>PRODUCT</span>
-          <span>ENGINEER</span>
+          Software &amp; Product Engineer
         </div>
 
         <p className="about-copy">

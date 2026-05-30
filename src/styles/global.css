@@ -139,6 +139,21 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Plus marker for the About item — picks up the plus-cluster ornament's
+   language so it doesn't read as an external-link arrow. */
+.nav-arrow--plus {
+  font-size: 1.25em;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--fg-soft);
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover .nav-arrow--plus,
+.nav-link:focus-visible .nav-arrow--plus {
+  color: var(--fg);
+}
+
 /* Copy icon — sits where the ↗ arrow would for other links */
 .nav-arrow--copy {
   display: inline-flex;
@@ -246,14 +261,14 @@ body {
 }
 
 /* Overlay 2 — bottom-to-top transparent black gradient. Adds a
-   subtle floor shadow that makes the CTA feel set in. */
+   very subtle floor shadow without darkening the surface much. */
 .nav-cta::after {
   content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.22),
+    rgba(0, 0, 0, 0.1),
     rgba(0, 0, 0, 0) 65%
   );
   pointer-events: none;
@@ -400,21 +415,43 @@ body {
   outline: none;
 }
 
-/* GABRIEL on left, M. on right — same space-between layout as the hero
-   line, sized to fit the modal width. */
+/* GABRIEL M. + thin slash filler. Flex row: name on the left, slash
+   filler expands to fill the rest of the modal width. */
 .about-monogram {
   display: flex;
-  justify-content: space-between;
   align-items: baseline;
+  gap: 0.5em;
   width: 100%;
   font-weight: 700;
-  /* Slightly shorter than before — was 11vw / 180px max */
   font-size: clamp(32px, 9vw, 140px);
   line-height: 0.85;
   letter-spacing: -0.02em;
   margin-bottom: clamp(10px, 1.4vw, 22px);
   color: #0a0a0a;
   user-select: none;
+  overflow: hidden;
+}
+
+.about-monogram-name {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* Thin hairline "/" pattern via repeating-linear-gradient. Empty span
+   has no intrinsic height, so we set it explicitly to `0.85em` —
+   matches the line-height of the GABRIEL M. row. `align-self: center`
+   vertically centers the hairline strip on the letters. */
+.about-monogram-fill {
+  flex: 1 1 auto;
+  height: 0.85em;
+  align-self: center;
+  background-image: repeating-linear-gradient(
+    115deg,
+    rgba(10, 10, 10, 0.42) 0,
+    rgba(10, 10, 10, 0.42) 1.5px,
+    transparent 1.5px,
+    transparent 8px
+  );
 }
 
 .about-subline {
@@ -422,7 +459,11 @@ body {
   font-family: inherit;
   font-weight: 400;
   font-size: clamp(13px, 1.6vw, 22px);
-  letter-spacing: 0.04em;
+  /* Letter-spacing for the editorial spread, word-spacing on top so
+     SOFTWARE / & / PRODUCT / ENGINEER read with clearly visible gaps
+     between words (not just letters). */
+  letter-spacing: 0.18em;
+  word-spacing: 0.5em;
   text-transform: uppercase;
   text-align: center;
   padding: 14px 0;
