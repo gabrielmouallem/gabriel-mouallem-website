@@ -369,6 +369,10 @@ body {
 body {
   overflow-x: hidden;
   min-height: 100vh;
+  /* dvh = the *visible* viewport, so the page fills exactly the area not
+     covered by mobile browser chrome (vh = the large viewport, which sits
+     behind the bottom bar). vh kept above as the fallback for old browsers. */
+  min-height: 100dvh;
 }
 
 ::selection {
@@ -403,6 +407,9 @@ body {
   position: relative;
   width: 100vw;
   height: 100vh;
+  /* Dynamic viewport height: fills the visible area on mobile rather than
+     extending behind the browser's bottom bar (vh above is the fallback). */
+  height: 100dvh;
   min-height: 640px;
   overflow: hidden;
   color: var(--fg);
@@ -1563,6 +1570,7 @@ body {
   .hero-stage {
     height: auto;
     min-height: 100vh;
+    min-height: 100dvh;
     padding-bottom: 60px;
   }
 
