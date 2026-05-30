@@ -12,7 +12,14 @@
    same noise (`noise-grain.png`) blended `screen` over the dark base,
    adding light grain.
 
-   Both: 256px tile (128px retina) + `image-rendering: pixelated`. */
+   The EXACT ElevenLabs setup — their black-alpha noise (`image-set`)
+   blended `overlay` — now works in BOTH modes because each base is held
+   in the mid-tones (see `.bg-texture` / `.bg-scrim`) instead of crushed
+   to pure black / pure white, giving `overlay` room to modulate.
+
+   NOTE on size: ElevenLabs use a 256px tile (128px on retina) → ~0.5
+   CSS-px grain on a 2x display, which is invisibly fine. We use a larger
+   tile (no retina halving) so the weave is actually perceptible. */
 .noise-overlay {
   position: fixed;
   inset: 0;
@@ -20,7 +27,7 @@
   pointer-events: none;
   --noise-scale: 1;
   image-rendering: pixelated;
-  background-size: calc(256px * var(--noise-scale));
+  background-size: calc(300px * var(--noise-scale));
   mix-blend-mode: overlay;
   background-image: image-set(
     url("/noise.avif") type("image/avif"),
@@ -31,18 +38,6 @@
     url("/noise.png") type("image/png")
   );
   opacity: 1;
-}
-
-html[data-palette-mode="dark"] .noise-overlay {
-  mix-blend-mode: screen;
-  background-image: url("/noise-grain.png");
-  opacity: 0.24;
-}
-
-@media (min-resolution: 2x) {
-  .noise-overlay {
-    background-size: calc(128px * var(--noise-scale));
-  }
 }
 
 :root {
@@ -106,13 +101,16 @@ html[data-palette-mode="dark"] body {
   background-image: url("/scratches-dark.jpg");
   background-size: cover;
   background-position: center;
-  /* Light mode: invert the near-black scan into a bright surface and
-     desaturate it to a pure black-and-white paper grain. */
-  filter: invert(1) grayscale(1) brightness(1.08) contrast(0.92);
+  /* Light mode: invert the near-black scan into a B&W paper grain, but
+     hold it at a LIGHT-GRAY mid-tone (not near-white) so the `overlay`
+     grain has tonal room to read. */
+  filter: invert(1) grayscale(1) brightness(0.86) contrast(0.85);
 }
 
 html[data-palette-mode="dark"] .bg-texture {
-  filter: brightness(0.82) contrast(1.05);
+  /* Dark mode: lift the near-black scan to a deep CHARCOAL mid-tone
+     (again, room for `overlay`) while keeping it moody and dark. */
+  filter: brightness(1.9) contrast(0.8);
 }
 
 .bg-scrim {
@@ -120,12 +118,15 @@ html[data-palette-mode="dark"] .bg-texture {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* Light mode: soft white wash to lift contrast under dark text. */
-  background: rgba(255, 255, 255, 0.42);
+  /* Light mode: gentle white wash — kept light so the base stays a
+     mid-tone, not blown to white. */
+  background: rgba(255, 255, 255, 0.18);
 }
 
 html[data-palette-mode="dark"] .bg-scrim {
-  background: rgba(0, 0, 0, 0.35);
+  /* Dark mode: soft black wash for text contrast without crushing the
+     charcoal base back to pure black. */
+  background: rgba(0, 0, 0, 0.22);
 }
 
 /* Dark mode re-inverts every clipped-text film mask so bold display copy
