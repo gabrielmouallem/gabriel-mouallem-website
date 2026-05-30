@@ -420,7 +420,7 @@ body {
 .about-monogram {
   display: flex;
   align-items: baseline;
-  gap: 0.5em;
+  gap: 0.15em;
   width: 100%;
   font-weight: 700;
   font-size: clamp(32px, 9vw, 140px);
