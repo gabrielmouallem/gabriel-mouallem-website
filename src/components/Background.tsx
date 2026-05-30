@@ -1,58 +1,60 @@
-import { useEffect } from "react";
-import GradientMesh from "./gradient/GradientMesh";
-import PrismRibbon, {
-  type PrismRibbonConfig,
-} from "./gradient/PrismRibbon";
-import Grain, { type GrainProps } from "./gradient/Grain";
-import { palettes, type PaletteKey } from "./gradient/palettes";
-import type { MeshConfig } from "./gradient/types";
-
-type Variant = "ribbon" | "mesh";
-
 interface Props {
-  /** Which shader treatment to render. */
-  variant?: Variant;
-  /**
-   * Palette key. Light and dark palettes both work; on dark palettes
-   * the first stop is used as the void background and the remaining
-   * stops feed the prism ramp.
-   */
-  palette?: PaletteKey;
-  /** Shader tuning. Shape depends on `variant`. */
-  config?: Partial<MeshConfig> | Partial<PrismRibbonConfig>;
-  /**
-   * Grain + dark-scrim overlay on top of the shader. `false` disables;
-   * an object overrides the defaults. Enabled by default.
-   */
-  grain?: false | Partial<GrainProps>;
+  /** Video URL to use as the fixed background. */
+  src?: string;
+  /** Static poster image shown before the video can play. */
+  poster?: string;
 }
 
+/**
+ * Looping film-scratch video background. Same composition trick as the
+ * old static image — `object-fit: cover` + `object-position: right
+ * center` zooms past the left-edge light leak so it stays off-screen
+ * on any viewport from ~1024 px up.
+ *
+ * Plays muted, looping, inline (required for autoplay on mobile Safari
+ * / Chrome). Drops a static poster image while the MP4 hydrates so
+ * there's no brief flash of empty bg color on first paint.
+ */
 export default function Background({
-  variant = "ribbon",
-  palette = "prismaticSpectrum",
-  config,
-  grain,
+  src = "/scratches.mp4",
+  poster = "/bg-3-scratches-leak.jpg",
 }: Props) {
-  const p = palettes[palette];
-
-  useEffect(() => {
-    document.documentElement.dataset.paletteMode = p.mode;
-    return () => {
-      delete document.documentElement.dataset.paletteMode;
-    };
-  }, [p.mode]);
-
-  const shader =
-    variant === "ribbon" ? (
-      <PrismRibbon palette={p} config={config as Partial<PrismRibbonConfig>} />
-    ) : (
-      <GradientMesh palette={p} config={config as Partial<MeshConfig>} />
-    );
-
   return (
-    <>
-      {shader}
-      {grain !== false && <Grain {...(grain ?? {})} />}
-    </>
+    <div
+      aria-hidden="true"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: "none",
+        backgroundColor: "#020308",
+        opacity: 0.9,
+        overflow: "hidden",
+      }}
+    >
+      <video
+        src={src}
+        poster={poster}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        style={{
+          /* Mirror `background-size: 150% auto; background-position:
+             right center` — video is 150 % viewport wide, height auto,
+             anchored to viewport right so the source's left-edge light
+             leak ends up off-screen. */
+          position: "absolute",
+          right: 0,
+          top: "50%",
+          transform: "translateY(-50%)",
+          width: "150%",
+          height: "auto",
+          minHeight: "100%",
+          objectFit: "cover",
+        }}
+      />
+    </div>
   );
 }

@@ -97,9 +97,12 @@ export default function Hero() {
   }, []);
 
   const N = experiences.length;
-  // >= so the first snap point (exactly heroEnd) lands on Irricontrol
-  // instead of flickering back to the empty hero state
-  const inTimeline = progress >= HERO_PHASE_END;
+  // Hysteresis: once progress crosses half of the hero phase, treat it as
+  // "in timeline" even if scrub momentarily dips below HERO_PHASE_END. The
+  // snap zones already pull the user firmly to either 0 or heroEnd, so the
+  // threshold at heroEnd*0.5 sits inside the larger snap zone and prevents
+  // the idx-0 ↔ hero flicker on small mouse-wheel bumps at the boundary.
+  const inTimeline = progress >= HERO_PHASE_END * 0.5;
   const tp = inTimeline
     ? (progress - HERO_PHASE_END) / (1 - HERO_PHASE_END)
     : 0;
@@ -123,6 +126,37 @@ export default function Hero() {
     });
   };
 
+  // Keep the latest activeIdx in a ref so the keydown listener (mounted
+  // once) always reads the current value without re-binding.
+  const activeIdxRef = useRef(activeIdx);
+  activeIdxRef.current = activeIdx;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      // Don't intercept when the user is typing in an input/textarea/etc.
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) {
+        return;
+      }
+      const cur = activeIdxRef.current;
+      if (cur < 0) return; // only navigate once we're in the timeline
+      let next: number | null = null;
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        next = Math.min(N - 1, cur + 1);
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        next = Math.max(0, cur - 1);
+      }
+      if (next !== null && next !== cur) {
+        e.preventDefault();
+        scrollToIndex(next);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // scrollToIndex closes over refs only, so once is fine
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div ref={wrapperRef} className="hero-wrapper">
       <div ref={stageRef} className="hero-stage">
@@ -132,7 +166,7 @@ export default function Hero() {
         <div
           className="hero-title"
           style={{
-            opacity: inTimeline ? 0.18 : 1 - heroAttenuation * 0.05,
+            opacity: inTimeline ? 0.08 : 1 - heroAttenuation * 0.05,
             transform: `translateY(${inTimeline ? -2 : 0}vh)`,
           }}
           aria-hidden={inTimeline ? "true" : undefined}
@@ -157,14 +191,14 @@ export default function Hero() {
               className="exp-panel"
               data-active={activeIdx === i ? "true" : "false"}
             >
-              <div className="exp-eyebrow">
-                {String(i + 1).padStart(2, "0")} / {String(N).padStart(2, "0")}
-              </div>
               <h2 className="exp-company">{exp.company}</h2>
-              <div className="exp-role">{exp.role}</div>
               <div className="exp-meta">
-                {exp.dates}
-                {exp.location ? ` · ${exp.location}` : ""}
+                <span className="exp-role">{exp.role}</span>
+                <span className="exp-meta-sep"> · </span>
+                <span className="exp-dates">
+                  {exp.dates}
+                  {exp.location ? ` · ${exp.location}` : ""}
+                </span>
               </div>
               <ul className="exp-bullets">
                 {exp.bullets.map((b, j) => (

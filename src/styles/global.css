@@ -8,11 +8,11 @@
 }
 
 html[data-palette-mode="dark"] {
-  --fg: #ede4cf;
-  --fg-soft: rgba(237, 228, 207, 0.78);
-  --fg-mute: rgba(237, 228, 207, 0.5);
-  --fg-faint: rgba(237, 228, 207, 0.3);
-  --selection-bg: #ede4cf;
+  --fg: #ffffff;
+  --fg-soft: rgba(255, 255, 255, 0.78);
+  --fg-mute: rgba(255, 255, 255, 0.5);
+  --fg-faint: rgba(255, 255, 255, 0.3);
+  --selection-bg: #ffffff;
   --selection-fg: #0a0a0a;
 }
 
@@ -165,10 +165,10 @@ body {
 
 .exp-panels {
   position: absolute;
-  top: 14vh;
+  top: 10vh;
   left: 4.5vw;
   right: 8vw;
-  max-width: 720px;
+  max-width: 760px;
   pointer-events: none;
   transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 3;
@@ -188,58 +188,58 @@ body {
   transform: translate3d(0, 0, 0);
 }
 
-.exp-eyebrow {
-  font-size: clamp(12px, 1vw, 15px);
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  margin-bottom: 18px;
-  text-transform: uppercase;
-}
-
+/* Title — still the visual anchor but ~40 % smaller for proportion */
 .exp-company {
-  font-size: clamp(40px, 6.5vw, 104px);
+  font-size: clamp(30px, 4.5vw, 68px);
   font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 0.96;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
+}
+
+/* Role + dates combined into one meta line saves vertical room */
+.exp-meta {
+  font-size: clamp(11px, 0.9vw, 14px);
+  font-weight: 400;
+  letter-spacing: 0.015em;
+  margin-bottom: 18px;
+  color: var(--fg-soft);
+  line-height: 1.4;
 }
 
 .exp-role {
-  font-size: clamp(15px, 1.45vw, 22px);
   font-weight: 700;
-  letter-spacing: -0.01em;
-  margin-bottom: 6px;
+  color: var(--fg);
 }
 
-.exp-meta {
-  font-size: clamp(12px, 1.05vw, 16px);
+.exp-meta-sep,
+.exp-dates {
   font-weight: 400;
-  letter-spacing: 0.02em;
-  margin-bottom: 22px;
   color: var(--fg-soft);
 }
 
 .exp-bullets {
   list-style: none;
-  font-size: clamp(13px, 1.1vw, 17px);
+  font-size: clamp(11.25px, 0.9vw, 14.4px);
   font-weight: 400;
-  line-height: 1.5;
-  letter-spacing: -0.005em;
+  line-height: 1.55;
+  letter-spacing: -0.003em;
+  color: var(--fg-soft);
 }
 
 .exp-bullets li {
   position: relative;
-  padding-left: 22px;
-  margin-bottom: 8px;
+  padding-left: 18px;
+  margin-bottom: 6px;
 }
 
 .exp-bullets li::before {
   content: "";
   position: absolute;
   left: 0;
-  top: 0.55em;
-  width: 12px;
-  height: 2px;
+  top: 0.6em;
+  width: 10px;
+  height: 1.5px;
   background: var(--fg);
 }
 
@@ -303,6 +303,24 @@ body {
   opacity: 1;
 }
 
+/* Hover — same visual language as the active state, just lighter so it
+   reads as a preview rather than a different style. Opacity + a touch
+   of line emphasis only. NO underline (the active state doesn't use one
+   either; mixing them broke visual consistency). */
+@media (hover: hover) {
+  .timeline-col:hover,
+  .timeline-col:focus-visible {
+    opacity: 1;
+  }
+
+  .timeline-col:hover .timeline-line,
+  .timeline-col:focus-visible .timeline-line {
+    width: 2px;
+    left: -0.5px;
+    opacity: 0.9;
+  }
+}
+
 .timeline-label {
   position: absolute;
   left: 10px;
@@ -316,6 +334,11 @@ body {
   color: var(--fg);
 }
 
+/* Alternating zigzag — every other column's label drops 34 px and its
+   line starts lower. Editorial rhythm, keeps the row from looking
+   like a uniform fence. The hover/active styles below all derive
+   their transforms from the zigzag base so the rhythm is preserved
+   when a column is selected. */
 .timeline-col:nth-child(even) .timeline-label {
   transform: translateY(34px);
 }
@@ -328,8 +351,13 @@ body {
   transform-origin: right top;
 }
 
+/* Active state — preserve the zigzag baseline, just scale up */
 .timeline-col[data-active="true"] .timeline-label {
   transform: translate(0, 0) scale(1.06);
+}
+
+.timeline-col:nth-child(even)[data-active="true"] .timeline-label {
+  transform: translateY(34px) scale(1.06);
 }
 
 .timeline-col[data-last="true"][data-active="true"] .timeline-label {
@@ -341,6 +369,27 @@ body {
 .timeline[data-compact="true"] .timeline-col:not([data-active="true"]) .timeline-label {
   opacity: 0;
   pointer-events: none;
+}
+
+/* Compact mode: center the visible active label ON TOP of its vertical line.
+   Overrides the default `left: 10px` (label right of line) and the last-
+   column right-anchor — in compact mode there's only one label visible so
+   it should always sit centered over the line, never offset to a side. */
+.timeline[data-compact="true"] .timeline-col[data-active="true"] .timeline-label,
+.timeline[data-compact="true"] .timeline-col[data-last="true"][data-active="true"] .timeline-label {
+  left: 0;
+  right: auto;
+  text-align: center;
+  transform: translate(-50%, 0) scale(1.06);
+  transform-origin: center top;
+}
+
+/* And cancel the alternating-row vertical offset in compact mode so the
+   label sits at a consistent height regardless of which column is active. */
+.timeline[data-compact="true"]
+  .timeline-col:nth-child(even)[data-active="true"]
+  .timeline-label {
+  transform: translate(-50%, 0) scale(1.06);
 }
 
 .timeline-label {

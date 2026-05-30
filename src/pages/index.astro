@@ -6,7 +6,7 @@ import Background from "../components/Background.tsx";
 import Hero from "../components/Hero.tsx";
 ---
 
-<html lang="en">
+<html lang="en" data-palette-mode="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -17,17 +17,13 @@ import Hero from "../components/Hero.tsx";
       name="description"
       content="Gabriel Mouallem — Product & Software Engineer. Full-stack, Kubernetes, cloud native."
     />
-    <meta name="theme-color" content="#14a3d6" />
+    <meta name="theme-color" content="#020308" />
     <title>Gabriel Mouallem</title>
   </head>
   <body>
-    {/* Swap variant + palette in one place. See palettes.ts for the full list.
-        variant: 'ribbon' (prism bands on dark) | 'mesh' (organic gradient blobs)
-        Light palettes:  botanica · lichen · forestMagic · sunwash · glacial · riso · sumie · pollen · cyanotype · saint
-        Dark palettes:   prismaticDispersion · prismaticAurora · prismaticNewton · prismaticCrystal
-                       · prismaticOnyx · prismaticSpectrum · bismuthCrystal · holographicCD
-                       · auroraBorealis · nebula · plasma · vaporwave · ironEmberDark · cherenkov */}
-    <Background client:load variant="ribbon" palette="prismaticSpectrum" />
+    {/* Looping film-scratch video bg. The MP4 is the live texture;
+        the poster image is shown until the video can play. */}
+    <Background src="/scratches-pingpong.mp4" poster="/bg-3-scratches-leak.jpg" />
     <Hero client:load />
   </body>
 </html>

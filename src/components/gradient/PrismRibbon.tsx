@@ -139,21 +139,32 @@ export interface PrismRibbonConfig {
 
 const defaultConfig: PrismRibbonConfig = {
   rotation: 0.42,
-  dispersion: 0.075,
+  /**
+   * Dispersion (total chromatic spread) and band thickness must be in
+   * the right ratio or the rainbow collapses:
+   *   - If dispersion < band thickness → all stops overlap at band
+   *     center, additive sum tints to the brightest hue (yellow).
+   *   - If dispersion ≈ band thickness → each stop's bright zone barely
+   *     overlaps its neighbour's, distinct colors visible at the band
+   *     edges with white only at the very core.
+   * yFreq=9 + bandLo=0.95 gives band thickness ≈ 0.10 NDC; dispersion
+   * 0.13 splits the 5 stops at ~0.026 spacing → some overlap (creates
+   * intermediate hues like orange/cyan) but the chromatic ends stay
+   * pure.
+   */
+  dispersion: 0.13,
   waveAmp: 0.07,
   waveFreq: 2.3,
   waveAmp2: 0.025,
   waveFreq2: 4.7,
-  yFreq: 7.0,
-  bandLo: 0.93,
-  bandHi: 0.998,
-  // Lower so the dark scrim from <Grain /> doesn't fight the prism colors.
-  // The blur smears bright cores into soft glow, so we don't need as much.
-  intensity: 0.28,
+  yFreq: 9.0,
+  bandLo: 0.95,
+  bandHi: 0.999,
+  intensity: 0.48,
   grain: 0.04,
-  // Spreads the ribbons into soft glow strips — helps readability of
-  // overlay text without losing the chromatic dispersion structure.
-  blur: 22,
+  // Sharper bands need less blur — 8 px keeps the chromatic separation
+  // visible while still softening the hard pixel edge.
+  blur: 8,
 };
 
 function hexToRGB(hex: string): [number, number, number] {
@@ -176,12 +187,14 @@ function hexToRGB(hex: string): [number, number, number] {
  */
 function buildRamp(palette: Palette): readonly string[] {
   if (palette.mode === "dark") {
-    // Drop ONLY the true void anchor (colors[0]); keep colors[1] because
-    // for spectrum-style palettes (prismaticSpectrum, prismaticNewton)
-    // it's the red/start-of-rainbow, not a dark anchor. Endpoints are
-    // weighted so the monotonic prism stack reads cleanly across the band.
+    // Drop only the true void anchor (colors[0]). The remaining 5
+    // vibrant stops fill 6 shader positions with the LAST color doubled
+    // — NOT the first. Doubling c1 (typically red) weighted the warm
+    // side and made the band read as yellow-dominant. Cool-doubling
+    // gives a balanced rainbow with red at one edge and violet at the
+    // other, matching real chromatic dispersion.
     const [, c1, c2, c3, c4, c5] = palette.colors;
-    return [c1, c1, c2, c3, c4, c5];
+    return [c1, c2, c3, c4, c5, c5];
   }
   return palette.colors;
 }

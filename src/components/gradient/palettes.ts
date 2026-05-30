@@ -132,9 +132,13 @@ export const palettes = {
   prismaticSpectrum: {
     slug: "prismatic-spectrum",
     name: "Prismatic Spectrum",
-    sub: "ROYGBIV at full chroma against single void",
+    sub: "ROYGBV at full chroma against single void",
     mode: "dark",
-    colors: ["#020308", "#FF1F2D", "#FFAA1A", "#FFEE22", "#1AE89C", "#5D2DFF"],
+    // Apple system rainbow — each color is closer to a pure primary
+    // than my earlier hand-rolled hexes, so additive overlap gives a
+    // true white core instead of yellow-tinted mush. R/Y/G/B/V sum to
+    // (255,255,255) when all 5 stops accumulate at the band center.
+    colors: ["#020308", "#FF2D55", "#FFCC00", "#34C759", "#007AFF", "#AF52DE"],
   },
   bismuthCrystal: {
     slug: "bismuth-crystal",
