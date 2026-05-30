@@ -84,6 +84,11 @@ html[data-palette-mode="dark"] .noise-overlay {
   opacity: 0.35;
 }
 
+/* Light mode — push the flare stronger so it reads against the bright page. */
+html:not([data-palette-mode="dark"]) .lens-flare {
+  opacity: 0.5;
+}
+
 :root {
   --fg: #0a0a0a;
   --fg-soft: rgba(10, 10, 10, 0.72);
@@ -786,6 +791,7 @@ html[data-palette-mode="dark"] .about-backdrop {
   pointer-events: none;
   z-index: 2;
 }
+
 
 .hero-line {
   display: block;

@@ -16,23 +16,12 @@ type PaletteMode = "light" | "dark";
 
 const PALETTE_STORAGE_KEY = "palette-mode";
 
-function readStoredMode(): PaletteMode | null {
-  try {
-    const v = localStorage.getItem(PALETTE_STORAGE_KEY);
-    return v === "light" || v === "dark" ? v : null;
-  } catch {
-    return null;
-  }
-}
-
 /**
  * Palette-mode controller. Behaviour:
+ *   • Default dark — with no stored choice the page is dark regardless of
+ *     the OS `prefers-color-scheme`.
  *   • Persist — an explicit toggle is written to localStorage and survives
  *     reloads (the inline head script reads it back before first paint).
- *   • Respect system preference — with no stored choice, the OS
- *     `prefers-color-scheme` decides, and the page live-follows OS changes.
- *   • Override — once the user toggles, the stored value wins and OS changes
- *     are ignored until storage is cleared.
  * The inline script is the source of truth on first paint (no flash); this
  * hook hydrates from the attribute it set and then keeps everything in sync.
  */
@@ -62,30 +51,15 @@ function usePaletteMode() {
     if (current === "light" || current === "dark") setMode(current);
   }, []);
 
-  // Live-follow the OS preference — but only while there's no explicit
-  // stored override.
-  useEffect(() => {
-    const mql = window.matchMedia("(prefers-color-scheme: light)");
-    const onChange = (e: MediaQueryListEvent) => {
-      if (readStoredMode()) return; // user override wins
-      applyMode(e.matches ? "light" : "dark", false);
-    };
-    mql.addEventListener("change", onChange);
-    return () => mql.removeEventListener("change", onChange);
-  }, [applyMode]);
-
-  // Keep other tabs in sync when the stored choice changes (or is cleared).
+  // Keep other tabs in sync when the stored choice changes (or is cleared
+  // → back to the dark default).
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key !== PALETTE_STORAGE_KEY) return;
       if (e.newValue === "light" || e.newValue === "dark") {
         applyMode(e.newValue, false);
       } else {
-        // Choice cleared elsewhere → fall back to the live OS preference.
-        const prefersLight = window.matchMedia(
-          "(prefers-color-scheme: light)",
-        ).matches;
-        applyMode(prefersLight ? "light" : "dark", false);
+        applyMode("dark", false);
       }
     };
     window.addEventListener("storage", onStorage);

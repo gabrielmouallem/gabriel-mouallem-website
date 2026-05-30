@@ -19,17 +19,15 @@ import { SITE } from "../data/site";
     <meta name="theme-color" content="#020308" />
     <title>{SITE.name}</title>
     {/* Resolve the palette mode before first paint to avoid a flash:
-        stored choice wins, otherwise fall back to the OS preference,
-        defaulting to dark. The matching <html> attribute + theme-color
-        are set synchronously so CSS variables are correct on load. */}
+        an explicit stored choice wins, otherwise default to dark (the OS
+        preference is intentionally ignored). The matching <html> attribute
+        + theme-color are set synchronously so CSS variables are correct on
+        load. */}
     <script is:inline>
       (function () {
         try {
           var stored = localStorage.getItem("palette-mode");
-          var prefersLight = window.matchMedia(
-            "(prefers-color-scheme: light)",
-          ).matches;
-          var mode = stored || (prefersLight ? "light" : "dark");
+          var mode = stored === "light" || stored === "dark" ? stored : "dark";
           document.documentElement.dataset.paletteMode = mode;
           var meta = document.querySelector('meta[name="theme-color"]');
           if (meta) meta.setAttribute("content", mode === "light" ? "#e9e6df" : "#020308");
@@ -61,7 +59,7 @@ import { SITE } from "../data/site";
 
     {/* ── LENS FLARE OVERLAY ──────────────────────────────────────────
         A full-screen lens-flare photo laid over EVERYTHING (incl. the
-        hero) and blended `screen` at low opacity so only its bright
+        hero) and blended `lighten` at low opacity so only its bright
         light streaks add a subtle optical glow without dimming content. */}
     <div aria-hidden="true" class="lens-flare"></div>
   </body>
