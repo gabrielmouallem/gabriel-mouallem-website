@@ -240,7 +240,7 @@ export default function Hero() {
         <div
           className="hero-title"
           style={{
-            opacity: inTimeline ? 0.08 : 1 - heroAttenuation * 0.05,
+            opacity: inTimeline ? 0 : 1 - heroAttenuation * 0.05,
             transform: `translateY(${inTimeline ? -2 : 0}vh)`,
           }}
           aria-hidden={inTimeline ? "true" : undefined}
