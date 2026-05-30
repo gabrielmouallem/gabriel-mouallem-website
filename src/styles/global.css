@@ -141,6 +141,42 @@ body {
 
 .hero-line {
   display: block;
+  position: relative;
+}
+
+/**
+ * Clipping-mask effect — duplicates the visible text via `::after`
+ * with `content: attr(data-text)`, paints it with the static scratched-
+ * film image (background-clipped to the text glyph shape), inverts the
+ * image so the dark surface becomes near-white and the bright scratches
+ * become near-black, and stacks it at low opacity over the underlying
+ * white text. The result: white text with faint inverted-bg detail
+ * showing through the letter shapes.
+ *
+ * `background-attachment: fixed` ties the image to the viewport, so the
+ * portion visible through the text is whatever would be at that viewport
+ * coordinate — feels like a window cut into the page.
+ */
+.hero-line::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  pointer-events: none;
+
+  background-image: url("/bg-3-scratches-leak.jpg");
+  background-size: 150% auto;
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+
+  filter: invert(1);
+  opacity: 1;
 }
 
 .hero-line-1 {
@@ -153,10 +189,16 @@ body {
   padding-left: 22vw;
 }
 
+/* Match the parent padding so the ::after text aligns with the visible text */
+.hero-line-2::after {
+  padding-left: 22vw;
+}
+
 .apos {
-  display: inline-block;
-  transform: translate(-0.03em, -0.02em) scale(1.05);
   font-style: normal;
+  /* No transform — the ::after clipping-mask pseudo renders the apostrophe
+     plain (it has no way to apply per-character styling from attr()), so any
+     shift here would split the apostrophe into two visible positions. */
 }
 
 /* ------------------------------------------------------------------ */

@@ -171,10 +171,12 @@ export default function Hero() {
           }}
           aria-hidden={inTimeline ? "true" : undefined}
         >
-          <div className="hero-line hero-line-1">
+          <div className="hero-line hero-line-1" data-text="I’M">
             I<span className="apos">&rsquo;</span>M
           </div>
-          <div className="hero-line hero-line-2">GABRIEL</div>
+          <div className="hero-line hero-line-2" data-text="GABRIEL">
+            GABRIEL
+          </div>
         </div>
 
         <div
