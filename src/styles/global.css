@@ -41,7 +41,7 @@ html[data-palette-mode="dark"] {
   --selection-bg: #ffffff;
   --selection-fg: #0a0a0a;
 
-  --page-bg: #0a0a18;
+  --page-bg: #0a0a0a;
   --nav-hover-bg: rgba(255, 255, 255, 0.05);
   --about-backdrop-bg: rgba(0, 0, 0, 0.55);
 
@@ -1088,13 +1088,36 @@ body {
   transition: opacity 0.35s ease;
   white-space: nowrap;
   color: var(--fg-soft);
+  /* Fade in/out loop on the TEXT ONLY (animates color, not element opacity)
+     so the page-bg halo below stays solid and keeps the timeline lines
+     masked the whole time. Same 0.8s cadence as the mobile prompt. */
+  animation: scroll-hint-text-pulse 0.8s ease-in-out infinite;
+}
+
+/* Page-colored halo behind the copy. The timeline's vertical lines run all
+   the way to the bottom of the viewport and would otherwise cut straight
+   through this text; this gradient masks them out under the words and fades
+   softly to transparent on every edge so there's no hard seam. Sits at z:-1
+   within the hint (which is above the timeline), so it covers the lines. */
+.scroll-hint::before {
+  content: "";
+  position: absolute;
+  inset: -0.7em -2.4em;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 150% at 50% 50%,
+    var(--page-bg) 38%,
+    transparent 78%
+  );
 }
 
 /* Hidden while the About modal is open (set from React). Kept as a
-   data-attribute rather than inline opacity so the mobile pulse animation
+   data-attribute rather than inline opacity so the pulse animation
    can be cleanly disabled when hidden. */
 .scroll-hint[data-hidden="true"] {
   opacity: 0;
+  animation: none;
 }
 
 /* "Press start" pulse — used on mobile where the hint sits between the
@@ -1108,6 +1131,18 @@ body {
   }
   50% {
     opacity: 1;
+  }
+}
+
+/* Desktop fade — animates the text color (not element opacity) so the
+   page-bg halo behind the copy stays solid while only the words breathe. */
+@keyframes scroll-hint-text-pulse {
+  0%,
+  100% {
+    color: color-mix(in srgb, var(--fg-soft) 45%, transparent);
+  }
+  50% {
+    color: var(--fg-soft);
   }
 }
 
