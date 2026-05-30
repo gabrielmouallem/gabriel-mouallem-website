@@ -4,8 +4,6 @@ import "@fontsource/space-mono/700.css";
 import "@fontsource/caveat/400.css";
 import "@fontsource/caveat/600.css";
 import "../styles/global.css";
-import Background from "../components/Background.tsx";
-import RedMist from "../components/RedMist.tsx";
 import Hero from "../components/Hero.tsx";
 import { SITE } from "../data/site";
 ---
@@ -22,10 +20,21 @@ import { SITE } from "../data/site";
     <title>{SITE.name}</title>
   </head>
   <body>
-    {/* Looping film-scratch video bg. The MP4 is the live texture;
-        the poster image is shown until the video can play. */}
-    <Background src="/scratches-pingpong.mp4" poster="/bg-3-scratches-leak.jpg" />
-    <RedMist client:load opacity={0.1} blend="screen" speed={0.1} />
+    {/* ── BACKGROUND: static dark scratch texture ─────────────────────
+        Near-black scanned surface with fine diagonal scratches + dust.
+        No mesh, no video — just the photo with a soft dark scrim on top
+        for text contrast. */}
+    <div
+      aria-hidden="true"
+      style="position:fixed;inset:0;z-index:0;pointer-events:none;background-image:url('/scratches-dark.jpg');background-size:cover;background-position:center;filter:brightness(0.82) contrast(1.05);"
+    >
+    </div>
+    <div
+      aria-hidden="true"
+      style="position:fixed;inset:0;z-index:0;pointer-events:none;background:rgba(0,0,0,0.35);"
+    >
+    </div>
+
     <Hero client:load />
   </body>
 </html>

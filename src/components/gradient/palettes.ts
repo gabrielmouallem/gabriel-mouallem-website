@@ -189,6 +189,13 @@ export const palettes = {
     mode: "dark",
     colors: ["#0A0202", "#3D0A04", "#8B1A0A", "#F57426", "#FCB04A", "#FDE48C"],
   },
+  graphite: {
+    slug: "graphite",
+    name: "Graphite",
+    sub: "Tones of black through charcoal",
+    mode: "dark",
+    colors: ["#030304", "#070708", "#0C0C0E", "#111114", "#17171B", "#202028"],
+  },
   cherenkov: {
     slug: "cherenkov",
     name: "Cherenkov",
