@@ -691,19 +691,22 @@ body {
    tiny slide-in when the experience becomes active. */
 .exp-annotations {
   position: absolute;
-  /* Below the hero-title block (which ends around top:33vh) and
-     above the timeline (which starts at top:58vh). Vertically lands
-     in the middle of the bullets area on the left. */
-  top: 38vh;
-  right: 5vw;
-  width: clamp(220px, 22vw, 320px);
+  /* Anchored from the BOTTOM so the note always sits in the clean band
+     just above the timeline (top:58vh), below the dense part of the
+     faded hero title — and stays put regardless of viewport height.
+     Zero-height container: children anchor their bottom edge here. */
+  bottom: 46vh;
+  top: auto;
+  right: 4.5vw;
+  width: clamp(220px, 24vw, 340px);
   pointer-events: none;
   z-index: 3;
 }
 
 .exp-annotation {
   position: absolute;
-  top: 0;
+  bottom: 0;
+  top: auto;
   right: 0;
   left: 0;
   margin: 0;
@@ -713,9 +716,9 @@ body {
   line-height: 1.22;
   letter-spacing: 0;
   text-align: right;
-  color: rgba(255, 255, 255, 0.62);
+  color: rgba(255, 255, 255, 0.68);
   /* Slight rotation gives it the handwritten "stuck on the page" feel */
-  transform: translate(8px, 0) rotate(-2deg);
+  transform: translate(10px, 6px) rotate(-2.5deg);
   opacity: 0;
   transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
     transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
@@ -723,7 +726,7 @@ body {
 
 .exp-annotation[data-active="true"] {
   opacity: 1;
-  transform: translate(0, 0) rotate(-2deg);
+  transform: translate(0, 0) rotate(-2.5deg);
 }
 
 @media (max-width: 900px) {
