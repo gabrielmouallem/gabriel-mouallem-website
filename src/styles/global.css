@@ -26,11 +26,51 @@
   --nav-hover-bg: rgba(0, 0, 0, 0.05);
   --about-backdrop-bg: rgba(20, 18, 16, 0.32);
 
-  /* Résumé CTA — flips to a dark accent on the bright page. */
+  /* About modal surface — INVERTED from the page so the card always
+     contrasts the field behind it. On the light page the card is dark;
+     the dark block below flips it to a light card. Foreground is exposed
+     as an RGB triplet so the many translucent strokes/copy tones derive
+     from one source. */
+  --about-surface: #141210;
+  --about-fg: #f5f4f2;
+  --about-fg-rgb: 245, 244, 242;
+  --about-border: rgba(255, 255, 255, 0.1);
+  /* Lime accent for the monogram period. Because the modal surface is
+     INVERTED from the page, this tracks the surface (not the page): on
+     the light page the card is dark, so we use the brighter lime that
+     reads on a dark field. */
+  --about-accent: #c6f24e;
+  /* Monogram hairline "/" fill. On the black card (this light-page variant)
+     it picks up the lime accent; the dark-page light card keeps the soft
+     foreground tone (see dark block). */
+  --about-hairline: color-mix(in srgb, var(--accent) 62%, transparent);
+
+  /* Lime accent (Latitude-style brand pop).
+     --accent      : vivid lime used for FILLED surfaces that carry dark
+                     text (CTA button) — reads on both palettes.
+     --accent-fg   : near-black text/icon tone that sits on the lime fill.
+     --accent-line : the lime used for thin strokes / markers that sit
+                     directly on --page-bg. On the bright paper it's a
+                     deeper lime so the hairline keeps contrast; on the
+                     dark field it can stay bright (see dark block). */
+  --accent: #c1ee3f;
+  --accent-fg: #0a0a0a;
+  --accent-line: #7f9e1d;
+  /* Lime for the hero "M." period. Tracks the PAGE surface: on the light
+     paper a vivid lime that still reads, brighter on the dark field. */
+  --hero-accent: #9ec400;
+
+  /* Résumé CTA — black surface with a light label on the bright page
+     (the dark block flips this to a lime fill with dark label). */
   --cta-bg: #0a0a0a;
   --cta-fg: #f2f0ea;
   --cta-border: #0a0a0a;
   --cta-bracket: rgba(242, 240, 234, 0.55);
+
+  /* Nav item icons (↗ / + / copy). Dark mode flips these to lime; on the
+     bright page they stay the soft-dark foreground tone. */
+  --nav-icon: var(--fg-soft);
+  --nav-icon-strong: var(--fg);
 }
 
 html[data-palette-mode="dark"] {
@@ -45,10 +85,144 @@ html[data-palette-mode="dark"] {
   --nav-hover-bg: rgba(255, 255, 255, 0.05);
   --about-backdrop-bg: rgba(0, 0, 0, 0.55);
 
-  --cta-bg: #ededed;
-  --cta-fg: #0a0a0a;
-  --cta-border: #d0d0d0;
+  --about-surface: #f9f9fa;
+  --about-fg: #0a0a0a;
+  --about-fg-rgb: 10, 10, 10;
+  --about-border: rgba(0, 0, 0, 0.1);
+  /* Dark page → light card: a vivid lime (not the dull olive line tone)
+     so the period still reads unmistakably as lime on the near-white
+     surface. */
+  --about-accent: #9ec400;
+  --about-hairline: rgba(var(--about-fg-rgb), 0.42);
+
+  /* On the near-black field the bright lime can run full strength for
+     both fills and hairline markers. */
+  --accent: #c6f24e;
+  --accent-line: #c6f24e;
+  --hero-accent: #c6f24e;
+
+  --cta-bg: var(--accent);
+  --cta-fg: var(--accent-fg);
+  --cta-border: var(--accent);
   --cta-bracket: rgba(10, 10, 10, 0.5);
+
+  /* Lime nav icons on the dark field. */
+  --nav-icon: var(--accent);
+  --nav-icon-strong: var(--accent);
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   BACKGROUND PATTERN (temporary comparison — graph | dots | lines | none)
+
+   A single fixed, full-bleed layer painted with pure-CSS gradients on the
+   solid --page-bg, selected via the `data-bg` attribute on <html>.
+
+   ALIGNMENT: the grid is built from the page's own structural module, not an
+   arbitrary px size. Nav, timeline and panels all share a 4.5vw content
+   gutter, and the 7 timeline verticals sit on the boundaries of the 6-column
+   frame between those gutters. So:
+     --grid-module = (100vw - 2·gutter) / 6  → the column spacing
+     --grid-cell   = module / 8              → inner subdivision (texture)
+   Both line layers are offset by `--grid-gutter` on X, so every PRIMARY line
+   lands exactly on a timeline column / content edge, and every inner line is
+   a clean subdivision of it. Colour is derived per palette so it themes free.
+   ────────────────────────────────────────────────────────────────────── */
+:root {
+  --grid-gutter: 4.5vw;
+  --grid-module: calc((100vw - var(--grid-gutter) * 2) / 6);
+  --grid-cell: calc(var(--grid-module) / 8);
+
+  /* Line patterns (graph + lines) — kept subtle. --grid-dot is the dot
+     pattern's own alpha so it can stay stronger in light mode (the one
+     exception) while everything else is more transparent. */
+  --grid-minor: rgba(10, 10, 10, 0.03);
+  --grid-major: rgba(10, 10, 10, 0.05);
+  --grid-dot: rgba(10, 10, 10, 0.09);
+}
+html[data-palette-mode="dark"] {
+  --grid-minor: rgba(255, 255, 255, 0.04);
+  --grid-major: rgba(255, 255, 255, 0.07);
+  /* Dark-mode dots step down to match the other patterns. */
+  --grid-dot: rgba(255, 255, 255, 0.07);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* Soft vignette so the grid is strongest up top and eases off toward the
+     bottom edge without vanishing in the timeline view. */
+  -webkit-mask-image: radial-gradient(
+    ellipse 130% 110% at 50% 0%,
+    #000 60%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 130% 110% at 50% 0%,
+    #000 60%,
+    transparent 100%
+  );
+}
+
+/* Blueprint graph paper — bold primary lines on the column module, fine inner
+   lines on the /8 subdivision. Verticals anchored to the gutter so the bold
+   ones coincide with the timeline columns. */
+html[data-bg="graph"] body::before {
+  background-image:
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(var(--grid-minor) 1px, transparent 1px);
+  background-size:
+    var(--grid-module) var(--grid-module),
+    var(--grid-module) var(--grid-module),
+    var(--grid-cell) var(--grid-cell),
+    var(--grid-cell) var(--grid-cell);
+  background-position:
+    var(--grid-gutter) 0,
+    0 0,
+    var(--grid-gutter) 0,
+    0 0;
+}
+
+/* Dot matrix — one dot exactly on every grid-line intersection (the graph's
+   line crossings), not in the cell centre. A radial-gradient is centred in its
+   tile, so the position is shifted back half a cell on both axes to land the
+   dot on the `gutter + k·cell` lattice; every 8th column sits on a timeline
+   vertical. */
+html[data-bg="dots"] body::before {
+  background-image: radial-gradient(
+    circle,
+    var(--grid-dot) 1px,
+    transparent 1.5px
+  );
+  background-size: var(--grid-cell) var(--grid-cell);
+  background-position:
+    calc(var(--grid-gutter) - var(--grid-cell) / 2)
+    calc(var(--grid-cell) / -2);
+}
+
+/* Single-scale line grid — the inner subdivision only, anchored to the gutter
+   so its lines fall on the column module too. */
+html[data-bg="lines"] body::before {
+  background-image:
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(var(--grid-major) 1px, transparent 1px);
+  background-size: var(--grid-cell) var(--grid-cell);
+  background-position: var(--grid-gutter) 0, 0 0;
+}
+
+/* Off — solid field. */
+html[data-bg="none"] body::before {
+  background-image: none;
+}
+
+@media (prefers-contrast: more) {
+  body::before {
+    display: none;
+  }
 }
 
 *,
@@ -59,12 +233,15 @@ html[data-palette-mode="dark"] {
   padding: 0;
 }
 
+html {
+  /* Solid page background lives on <html> only. Keeping <body> transparent
+     lets the fixed `body::before` grid layer (z-index:-1) paint above this
+     fill instead of being hidden behind body's own opaque background. */
+  background: var(--page-bg);
+}
+
 html,
 body {
-  /* Solid page background (warm paper in light, near-black navy in dark).
-     This is the only background layer — the former texture/scrim/fabric/
-     lens-flare overlays were removed for a clean flat look. */
-  background: var(--page-bg);
   color: var(--fg);
   font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
     monospace;
@@ -79,8 +256,8 @@ body {
 }
 
 ::selection {
-  background: var(--selection-bg);
-  color: var(--selection-fg);
+  background: var(--accent);
+  color: var(--accent-fg);
 }
 
 /* Visually hidden but available to assistive tech + crawlers. Used for the
@@ -132,6 +309,8 @@ body {
   align-items: stretch;
   height: 44px;
   z-index: 4;
+  /* Solid page fill so the background pattern doesn't read through the nav. */
+  background: var(--page-bg);
   border-bottom: 1px solid var(--fg-faint);
 }
 
@@ -188,13 +367,13 @@ body {
   font-size: 1.25em;
   font-weight: 700;
   line-height: 1;
-  color: var(--fg-soft);
+  color: var(--nav-icon);
   transition: color 0.2s ease;
 }
 
 .nav-link:hover .nav-arrow--plus,
 .nav-link:focus-visible .nav-arrow--plus {
-  color: var(--fg);
+  color: var(--nav-icon-strong);
 }
 
 /* Copy icon — sits where the ↗ arrow would for other links */
@@ -204,13 +383,13 @@ body {
   justify-content: center;
   width: 14px;
   height: 14px;
-  color: var(--fg-soft);
+  color: var(--nav-icon);
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .nav-link:hover .nav-arrow--copy,
 .nav-link:focus-visible .nav-arrow--copy {
-  color: var(--fg);
+  color: var(--nav-icon-strong);
   transform: none;
 }
 
@@ -225,8 +404,8 @@ body {
   font-weight: 400;
   font-size: 1.1em;
   line-height: 1;
-  color: var(--fg-soft);
-  transition: transform 0.2s ease;
+  color: var(--nav-icon);
+  transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .nav-link:hover .nav-arrow,
@@ -234,8 +413,7 @@ body {
   transform: translate(2px, -2px);
 }
 
-/* CTA — solid surface with a subtle bottom gradient (::after). Brackets are
-   inline in the JSX. */
+/* CTA — flat solid surface. Brackets are inline in the JSX. */
 .nav-cta {
   position: relative;
   display: inline-flex;
@@ -244,9 +422,9 @@ body {
   margin-left: auto;
   padding: 0 22px;
 
-  /* Dark mode: off-white surface (softer than pure #fff) with a dark
-     label. Light mode: flips to a dark accent button so it keeps strong
-     contrast against the bright page. Both live in the CTA tokens. */
+  /* Dark mode: lime fill with a dark label. Light mode: flips to a black
+     surface with a lime label so it keeps strong contrast against the
+     bright page. Both live in the CTA tokens. */
   background: var(--cta-bg);
   color: var(--cta-fg);
   font-size: clamp(11px, 0.85vw, 13px);
@@ -260,21 +438,7 @@ body {
   transition: opacity 0.2s ease;
 }
 
-/* Bottom-to-top transparent black gradient. Adds a very subtle floor
-   shadow without darkening the surface much. */
-.nav-cta::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.1),
-    rgba(0, 0, 0, 0) 65%
-  );
-  pointer-events: none;
-}
-
-/* Content sits above both overlays */
+/* Content sits above the surface */
 .nav-cta > * {
   position: relative;
   z-index: 1;
@@ -323,8 +487,8 @@ body {
 
 .about-modal {
   position: relative;
-  background: #f9f9fa;
-  color: #0a0a0a;
+  background: var(--about-surface);
+  color: var(--about-fg);
   /* Match the nav width EXACTLY: nav is left: 4.5vw; right: 4.5vw →
      91vw wide. Setting both width and max-width to 91vw means the
      modal aligns left- and right-edge with the nav. */
@@ -334,7 +498,7 @@ body {
   overflow-y: auto;
   /* Tighter vertical padding so the modal isn't tall for no reason */
   padding: clamp(20px, 2.6vw, 44px) clamp(28px, 4vw, 64px);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--about-border);
   box-shadow:
     0 2.8px 2.2px rgba(0, 0, 0, 0.03),
     0 12.5px 10px rgba(0, 0, 0, 0.06),
@@ -359,7 +523,7 @@ body {
   font: inherit;
   font-size: 28px;
   line-height: 1;
-  color: #0a0a0a;
+  color: var(--about-fg);
   cursor: pointer;
   transition: opacity 0.15s ease;
 }
@@ -390,7 +554,7 @@ body {
   text-transform: uppercase;
   margin: 0 0 14px 0;
   padding-bottom: 14px;
-  border-bottom: 1px dashed rgba(0, 0, 0, 0.2);
+  border-bottom: 1px dashed rgba(var(--about-fg-rgb), 0.2);
 }
 
 .about-list {
@@ -403,18 +567,18 @@ body {
   font-size: clamp(12px, 0.95vw, 14px);
   font-weight: 400;
   line-height: 1.45;
-  color: rgba(10, 10, 10, 0.75);
+  color: rgba(var(--about-fg-rgb), 0.75);
 }
 
 .about-link {
-  color: #0a0a0a;
+  color: var(--about-fg);
   text-decoration: none;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(var(--about-fg-rgb), 0.15);
   transition: border-color 0.15s ease;
 }
 .about-link:hover,
 .about-link:focus-visible {
-  border-bottom-color: #0a0a0a;
+  border-bottom-color: var(--about-fg);
   outline: none;
 }
 
@@ -430,7 +594,7 @@ body {
   line-height: 0.85;
   letter-spacing: -0.02em;
   margin-bottom: clamp(10px, 1.4vw, 22px);
-  color: #0a0a0a;
+  color: var(--about-fg);
   user-select: none;
   overflow: hidden;
 }
@@ -438,6 +602,10 @@ body {
 .about-monogram-name {
   flex: 0 0 auto;
   white-space: nowrap;
+}
+
+.about-monogram-dot {
+  color: var(--about-accent);
 }
 
 /* Thin hairline "/" pattern via repeating-linear-gradient. Empty span
@@ -450,8 +618,8 @@ body {
   align-self: center;
   background-image: repeating-linear-gradient(
     115deg,
-    rgba(10, 10, 10, 0.42) 0,
-    rgba(10, 10, 10, 0.42) 1.5px,
+    var(--about-hairline) 0,
+    var(--about-hairline) 1.5px,
     transparent 1.5px,
     transparent 8px
   );
@@ -470,16 +638,16 @@ body {
   text-transform: uppercase;
   text-align: center;
   padding: 14px 0;
-  border-top: 1px dashed rgba(0, 0, 0, 0.2);
-  border-bottom: 1px dashed rgba(0, 0, 0, 0.2);
+  border-top: 1px dashed rgba(var(--about-fg-rgb), 0.2);
+  border-bottom: 1px dashed rgba(var(--about-fg-rgb), 0.2);
   margin-bottom: clamp(20px, 2.5vw, 36px);
-  color: #0a0a0a;
+  color: var(--about-fg);
 }
 
 .about-copy {
   text-align: center;
   font-size: clamp(11px, 0.85vw, 12px);
-  color: rgba(10, 10, 10, 0.55);
+  color: rgba(var(--about-fg-rgb), 0.55);
   margin: 0;
 }
 
@@ -541,8 +709,8 @@ body {
      (.nav-link border-right: 1px dashed). No border-radius — hard corners. */
   border: 1px dashed var(--fg-mute);
   border-radius: 0;
-  /* Neutral mid-gray tint reads on both the light paper and the dark field. */
-  background: rgba(127, 127, 127, 0.08);
+  /* Solid page fill so the background pattern doesn't show through the track. */
+  background: var(--page-bg);
   transition: border-color 0.3s ease, background 0.3s ease;
 }
 
@@ -561,6 +729,8 @@ body {
   height: 24px;
   /* Squared knob (no radius) to echo the hard-cornered nav chrome. */
   border-radius: 0;
+  /* Monochrome knob — black on the light paper, white on the dark field
+     (--fg flips per palette). The icon it parks over takes the contrast tone. */
   background: var(--fg);
   transform: translate(0, -50%);
   transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
@@ -591,10 +761,64 @@ body {
   right: 9px;
 }
 
-/* The icon the knob is parked under flips to the knob's contrast tone. */
+/* The icon parked under the knob flips to the knob's contrast tone
+   (--selection-fg): cream on the black light-mode knob, black on the white
+   dark-mode knob. */
 .palette-toggle[data-mode="light"] .palette-toggle-icon--sun,
 .palette-toggle[data-mode="dark"] .palette-toggle-icon--moon {
   color: var(--selection-fg);
+}
+
+/* TEMP background-pattern picker — squared mono segmented control parked
+   under the palette toggle. Delete with the rest of the bg-pattern scaffolding
+   once a direction is chosen. */
+.bg-toggle {
+  position: absolute;
+  top: calc(7.5vh + 44px);
+  right: 5vw;
+  z-index: 4;
+  display: inline-flex;
+}
+
+.bg-toggle-btn {
+  appearance: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  /* Solid page fill so the background pattern doesn't show through. */
+  background: var(--page-bg);
+  border: 1px dashed var(--fg-mute);
+  border-left-width: 0;
+  border-radius: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.bg-toggle-btn:first-child {
+  border-left-width: 1px;
+}
+
+.bg-toggle-btn:hover {
+  color: var(--fg-soft);
+}
+
+/* Selected = monochrome fill mirroring the palette toggle's knob (black on
+   the light paper, white on the dark field; label takes the contrast tone). */
+.bg-toggle-btn[data-active="true"] {
+  color: var(--selection-fg);
+  background: var(--fg);
+  border-color: var(--fg);
+  border-left-width: 1px;
+  margin-left: -1px;
+}
+
+.bg-toggle-btn:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 1px;
 }
 
 /* ------------------------------------------------------------------ */
@@ -664,6 +888,10 @@ body {
 .hero-line-fragment {
   display: inline-block;
   white-space: nowrap;
+}
+
+.hero-dot {
+  color: var(--hero-accent);
 }
 
 .apos {
@@ -804,7 +1032,7 @@ body {
   top: 0.6em;
   width: 10px;
   height: 1.5px;
-  background: var(--fg);
+  background: var(--accent-line);
 }
 
 /* ------------------------------------------------------------------ */

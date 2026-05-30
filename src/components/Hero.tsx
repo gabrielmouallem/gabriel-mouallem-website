@@ -6,8 +6,10 @@ import {
 import { HeroTitle } from "./hero/HeroTitle";
 import { Nav } from "./hero/Nav";
 import { PaletteToggle } from "./hero/PaletteToggle";
+import { BgToggle } from "./hero/BgToggle";
 import { Timeline } from "./hero/Timeline";
 import { useAboutModal } from "./hero/useAboutModal";
+import { useBgPattern } from "./hero/useBgPattern";
 import { useExperienceTimeline } from "./hero/useExperienceTimeline";
 import { useHashDeepLink } from "./hero/useHashDeepLink";
 import { usePaletteMode } from "./hero/usePaletteMode";
@@ -31,6 +33,7 @@ export default function Hero() {
   } = useExperienceTimeline();
 
   const { mode, toggleMode } = usePaletteMode();
+  const { pattern, choose } = useBgPattern();
   const { aboutOpen, openAbout, closeAbout } = useAboutModal();
 
   useHashDeepLink({ activeIdx, aboutOpen, onOpenAbout: openAbout, scrollTo });
@@ -41,6 +44,7 @@ export default function Hero() {
         <Nav onAbout={openAbout} />
         {aboutOpen && <About onClose={closeAbout} />}
         <PaletteToggle mode={mode} onToggle={toggleMode} />
+        <BgToggle pattern={pattern} onChoose={choose} />
 
         <HeroTitle inTimeline={inTimeline} heroAttenuation={heroAttenuation} />
 

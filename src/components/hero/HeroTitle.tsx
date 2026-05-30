@@ -20,7 +20,9 @@ export function HeroTitle({ inTimeline, heroAttenuation }: Props) {
       </div>
       <div className="hero-line hero-line-2">
         <span className="hero-line-fragment">GABRIEL</span>
-        <span className="hero-line-fragment">M.</span>
+        <span className="hero-line-fragment">
+          M<span className="hero-dot">.</span>
+        </span>
       </div>
     </div>
   );

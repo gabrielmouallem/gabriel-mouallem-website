@@ -23,7 +23,7 @@ const personSchema = buildPersonSchema();
 const websiteSchema = buildWebsiteSchema();
 ---
 
-<html lang="en" data-palette-mode="dark">
+<html lang="en" data-palette-mode="dark" data-bg="graph">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href={withBase("/favicon.svg")} />
@@ -89,6 +89,12 @@ const websiteSchema = buildWebsiteSchema();
           document.documentElement.dataset.paletteMode = mode;
           var meta = document.querySelector('meta[name="theme-color"]');
           if (meta) meta.setAttribute("content", mode === "light" ? "#e9e6df" : "#020308");
+          // TEMP background-pattern comparison: resolve the stored choice
+          // (graph | dots | lines | none) before first paint.
+          var bg = localStorage.getItem("bg-pattern");
+          if (bg === "graph" || bg === "dots" || bg === "lines" || bg === "none") {
+            document.documentElement.dataset.bg = bg;
+          }
         } catch (e) {
           document.documentElement.dataset.paletteMode = "dark";
         }

@@ -101,7 +101,9 @@ export function About({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="about-monogram" aria-hidden="true">
-          <span className="about-monogram-name">GABRIEL M.</span>
+          <span className="about-monogram-name">
+            GABRIEL M<span className="about-monogram-dot">.</span>
+          </span>
           <span className="about-monogram-fill" aria-hidden="true" />
         </div>
 
