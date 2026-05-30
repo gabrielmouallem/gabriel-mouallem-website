@@ -1,40 +1,35 @@
-import type { PaletteMode } from "./usePaletteMode";
-import { MoonIcon, SunIcon } from "./icons";
+import type { PalettePreference } from "./usePaletteMode";
+import { MonitorIcon, MoonIcon, SunIcon } from "./icons";
+import { SegmentedControl, type SegmentOption } from "./SegmentedControl";
+
+// Light → dark keeps the sun/moon icons adjacent as a natural progression;
+// `system` is the meta/auto option, parked at the end (next-themes / macOS
+// "Auto" convention) rather than splitting the spectrum.
+const OPTIONS: ReadonlyArray<SegmentOption<PalettePreference>> = [
+  { value: "light", icon: <SunIcon />, ariaLabel: "Light theme" },
+  { value: "dark", icon: <MoonIcon />, ariaLabel: "Dark theme" },
+  { value: "system", icon: <MonitorIcon />, ariaLabel: "Match system theme" },
+];
 
 /**
- * Sliding light/dark switch — sits in the top-right where the decorative
- * plus-cluster used to be. A pill track with a sun on the left and a moon
- * on the right; the filled knob slides to the active side and the icon it
- * covers flips to the contrast tone.
+ * Color-theme picker — a mono segmented control (light / system / dark) that
+ * sits in the top-right where the decorative plus-cluster used to be. Shares
+ * the `SegmentedControl` base with the background-pattern picker below it.
  */
 export function PaletteToggle({
-  mode,
-  onToggle,
+  preference,
+  onChoose,
 }: {
-  mode: PaletteMode;
-  onToggle: () => void;
+  preference: PalettePreference;
+  onChoose: (next: PalettePreference) => void;
 }) {
-  const isDark = mode === "dark";
   return (
-    <button
-      type="button"
+    <SegmentedControl
       className="palette-toggle"
-      data-mode={mode}
-      role="switch"
-      aria-checked={isDark}
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      onClick={onToggle}
-    >
-      <span className="palette-toggle-track" aria-hidden="true">
-        <span className="palette-toggle-knob" />
-        <span className="palette-toggle-icon palette-toggle-icon--sun">
-          <SunIcon />
-        </span>
-        <span className="palette-toggle-icon palette-toggle-icon--moon">
-          <MoonIcon />
-        </span>
-      </span>
-    </button>
+      ariaLabel="Color theme"
+      value={preference}
+      options={OPTIONS}
+      onChange={onChoose}
+    />
   );
 }

@@ -32,7 +32,7 @@ export default function Hero() {
     scrollTo,
   } = useExperienceTimeline();
 
-  const { mode, toggleMode } = usePaletteMode();
+  const { preference, choosePreference } = usePaletteMode();
   const { pattern, choose } = useBgPattern();
   const { aboutOpen, openAbout, closeAbout } = useAboutModal();
 
@@ -43,7 +43,7 @@ export default function Hero() {
       <div ref={stageRef} className="hero-stage">
         <Nav onAbout={openAbout} />
         {aboutOpen && <About onClose={closeAbout} />}
-        <PaletteToggle mode={mode} onToggle={toggleMode} />
+        <PaletteToggle preference={preference} onChoose={choosePreference} />
         <BgToggle pattern={pattern} onChoose={choose} />
 
         <HeroTitle inTimeline={inTimeline} heroAttenuation={heroAttenuation} />

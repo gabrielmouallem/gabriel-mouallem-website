@@ -1,4 +1,5 @@
 import { BG_PATTERNS, type BgPattern } from "./useBgPattern";
+import { SegmentedControl, type SegmentOption } from "./SegmentedControl";
 
 const LABELS: Record<BgPattern, string> = {
   graph: "Graph",
@@ -7,11 +8,17 @@ const LABELS: Record<BgPattern, string> = {
   none: "Off",
 };
 
+const OPTIONS: ReadonlyArray<SegmentOption<BgPattern>> = BG_PATTERNS.map((p) => ({
+  value: p,
+  label: LABELS[p],
+}));
+
 /**
- * TEMPORARY background-pattern picker — a tiny mono segmented control parked
- * under the palette toggle so we can compare the candidate textures live on
- * the page. Delete this (and useBgPattern + the CSS block + the inline head
- * resolver) once a winner is chosen.
+ * TEMPORARY background-pattern picker — a mono segmented control parked under
+ * the theme picker so we can compare the candidate textures live on the page.
+ * Shares the `SegmentedControl` base with the theme picker. Delete this (and
+ * useBgPattern + the CSS block + the inline head resolver) once a winner is
+ * chosen.
  */
 export function BgToggle({
   pattern,
@@ -21,19 +28,12 @@ export function BgToggle({
   onChoose: (next: BgPattern) => void;
 }) {
   return (
-    <div className="bg-toggle" role="group" aria-label="Background pattern (preview)">
-      {BG_PATTERNS.map((p) => (
-        <button
-          key={p}
-          type="button"
-          className="bg-toggle-btn"
-          data-active={pattern === p}
-          aria-pressed={pattern === p}
-          onClick={() => onChoose(p)}
-        >
-          {LABELS[p]}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl
+      className="bg-toggle"
+      ariaLabel="Background pattern (preview)"
+      value={pattern}
+      options={OPTIONS}
+      onChange={onChoose}
+    />
   );
 }

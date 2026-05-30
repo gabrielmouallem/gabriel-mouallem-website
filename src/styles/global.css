@@ -793,121 +793,26 @@ body {
 }
 
 /* ------------------------------------------------------------------ */
-/* Plus cluster                                                        */
+/* Segmented controls (theme + background-pattern pickers)             */
 /* ------------------------------------------------------------------ */
 
-/* Sliding sun/moon switch — occupies the top-right slot the decorative
-   plus-cluster used to hold. */
-.palette-toggle {
-  position: absolute;
-  top: 7.5vh;
-  right: 5vw;
-  z-index: 4;
+/* Shared squared/dashed mono segmented control. Both the color-theme picker
+   and the background-pattern picker render as `.seg` groups so they read as
+   the same component; per-instance positioning lives on the modifier classes
+   (.palette-toggle / .bg-toggle). The dashed border echoes the nav's grungy
+   editorial separators (.nav-link border-right: 1px dashed). */
+.seg {
   display: inline-flex;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
+}
+
+.seg-btn {
   appearance: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.palette-toggle:focus-visible {
-  outline: none;
-}
-
-.palette-toggle-track {
-  position: relative;
-  display: inline-block;
-  width: 70px;
-  height: 32px;
-  /* Squared + dashed to match the nav's grungy editorial separators
-     (.nav-link border-right: 1px dashed). No border-radius — hard corners. */
-  border: 1px dashed var(--fg-mute);
-  border-radius: 0;
-  /* Solid page fill so the background pattern doesn't show through the track. */
-  background: var(--page-bg);
-  transition: border-color 0.3s ease, background 0.3s ease;
-}
-
-.palette-toggle:hover .palette-toggle-track,
-.palette-toggle:focus-visible .palette-toggle-track {
-  border-color: var(--fg-mute);
-}
-
-/* Filled knob — slides between the two icons. Sits BELOW the icons so the
-   icon it parks under stays visible and flips to the contrast tone. */
-.palette-toggle-knob {
-  position: absolute;
-  top: 50%;
-  left: 3px;
-  width: 26px;
-  height: 24px;
-  /* Squared knob (no radius) to echo the hard-cornered nav chrome. */
-  border-radius: 0;
-  /* Monochrome knob — black on the light paper, white on the dark field
-     (--fg flips per palette). The icon it parks over takes the contrast tone. */
-  background: var(--fg);
-  transform: translate(0, -50%);
-  transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
-    background 0.3s ease;
-}
-
-.palette-toggle[data-mode="dark"] .palette-toggle-knob {
-  transform: translate(36px, -50%);
-}
-
-.palette-toggle-icon {
-  position: absolute;
-  top: 50%;
-  z-index: 1;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transform: translateY(-50%);
-  color: var(--fg-mute);
-  transition: color 0.3s ease;
-}
-
-.palette-toggle-icon--sun {
-  left: 9px;
-}
-
-.palette-toggle-icon--moon {
-  right: 9px;
-}
-
-/* The icon parked under the knob flips to the knob's contrast tone
-   (--selection-fg): cream on the black light-mode knob, black on the white
-   dark-mode knob. */
-.palette-toggle[data-mode="light"] .palette-toggle-icon--sun,
-.palette-toggle[data-mode="dark"] .palette-toggle-icon--moon {
-  color: var(--selection-fg);
-}
-
-/* TEMP background-pattern picker — squared mono segmented control parked
-   under the palette toggle. Delete with the rest of the bg-pattern scaffolding
-   once a direction is chosen. */
-.bg-toggle {
-  position: absolute;
-  top: calc(7.5vh + 44px);
-  right: 5vw;
-  z-index: 4;
-  display: inline-flex;
-}
-
-/* Hide the pattern picker on mobile (matches the nav-link collapse
-   breakpoint); the background still defaults to graph. */
-@media (max-width: 900px) {
-  .bg-toggle {
-    display: none;
-  }
-}
-
-.bg-toggle-btn {
-  appearance: none;
-  cursor: pointer;
-  padding: 4px 8px;
+  min-height: 30px;
+  padding: 4px 9px;
   font-family: inherit;
   font-size: 10px;
   letter-spacing: 0.08em;
@@ -922,17 +827,17 @@ body {
   transition: color 0.2s ease, background 0.2s ease;
 }
 
-.bg-toggle-btn:first-child {
+.seg-btn:first-child {
   border-left-width: 1px;
 }
 
-.bg-toggle-btn:hover {
+.seg-btn:hover {
   color: var(--fg-soft);
 }
 
-/* Selected = monochrome fill mirroring the palette toggle's knob (black on
-   the light paper, white on the dark field; label takes the contrast tone). */
-.bg-toggle-btn[data-active="true"] {
+/* Selected = monochrome fill (black on the light paper, white on the dark
+   field; contents take the contrast tone). */
+.seg-btn[data-active="true"] {
   color: var(--selection-fg);
   background: var(--fg);
   border-color: var(--fg);
@@ -940,9 +845,41 @@ body {
   margin-left: -1px;
 }
 
-.bg-toggle-btn:focus-visible {
+.seg-btn:focus-visible {
   outline: 1px solid var(--fg);
   outline-offset: 1px;
+}
+
+.seg-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Color-theme picker — occupies the top-right slot the decorative
+   plus-cluster used to hold. */
+.palette-toggle {
+  position: absolute;
+  top: 7.5vh;
+  right: 5vw;
+  z-index: 4;
+}
+
+/* TEMP background-pattern picker — parked just under the theme picker. Delete
+   with the rest of the bg-pattern scaffolding once a direction is chosen. */
+.bg-toggle {
+  position: absolute;
+  top: calc(7.5vh + 42px);
+  right: 5vw;
+  z-index: 4;
+}
+
+/* Hide the pattern picker on mobile (matches the nav-link collapse
+   breakpoint); the background still defaults to graph. */
+@media (max-width: 900px) {
+  .bg-toggle {
+    display: none;
+  }
 }
 
 /* ------------------------------------------------------------------ */

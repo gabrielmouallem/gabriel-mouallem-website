@@ -78,6 +78,7 @@ export const experiences: Experience[] = [
     role: "Software Developer (remote, USD)",
     dates: "Aug 2022 — Jun 2024",
     location: "Honolulu, HI",
+    annotation: "first fully-remote USD role — from here on it's been global companies only :)",
     bullets: [
       "Sole frontend dev for AI.FISH (US client), architecting and delivering 3 complex AI-powered video-analysis platforms",
       "Engineered real-time AI bounding boxes accurately synchronized to playing video; solved smooth-playback / responsive-seeking challenges via custom data fetching and caching strategies over long videos with heavy AI metadata",
