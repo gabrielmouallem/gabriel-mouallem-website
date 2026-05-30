@@ -27,8 +27,6 @@ export default function Background({
         inset: 0,
         zIndex: 0,
         pointerEvents: "none",
-        backgroundColor: "#020308",
-        opacity: 0.9,
         overflow: "hidden",
       }}
     >
@@ -53,6 +51,16 @@ export default function Background({
           height: "auto",
           minHeight: "100%",
           objectFit: "cover",
+        }}
+      />
+      {/* Translucent black scrim ON TOP of the video — sits between the
+          video and the foreground content. Darkens the scratch motion
+          without removing it. Tune alpha to taste. */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
         }}
       />
     </div>
