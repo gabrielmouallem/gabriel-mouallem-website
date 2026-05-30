@@ -138,12 +138,32 @@ html[data-palette-mode="dark"] {
   --grid-minor: rgba(10, 10, 10, 0.03);
   --grid-major: rgba(10, 10, 10, 0.05);
   --grid-dot: rgba(10, 10, 10, 0.09);
+
+  /* Bottom mesh triangle — green→blue field that rises from the bottom edge
+     (à la the NovaFlow footer), here kept SHORT so it reads as a soft halo
+     under the timeline rather than a full panel. The blobs fade to
+     transparent before the clip edge, so the triangle silhouette feathers
+     into the page instead of showing a hard cut.
+     Light paper: slightly muted so the lime/blue sit on the warm field. */
+  --mesh-green: #8fd14f;
+  --mesh-teal: #3aab8c;
+  --mesh-blue: #2f6fd0;
+  --mesh-blue-deep: #3b58bf;
+  --mesh-strength: 0.42;
 }
 html[data-palette-mode="dark"] {
   --grid-minor: rgba(255, 255, 255, 0.04);
   --grid-major: rgba(255, 255, 255, 0.07);
   /* Dark-mode dots step down to match the other patterns. */
   --grid-dot: rgba(255, 255, 255, 0.07);
+
+  /* On the near-black field the mesh runs a touch brighter / more saturated
+     so the additive glow reads (matching the reference's vivid green→blue). */
+  --mesh-green: #9ee84a;
+  --mesh-teal: #2ecf92;
+  --mesh-blue: #3a82ef;
+  --mesh-blue-deep: #1f49c7;
+  --mesh-strength: 0.6;
 }
 
 body::before {
@@ -219,8 +239,77 @@ html[data-bg="none"] body::before {
   background-image: none;
 }
 
+/* ──────────────────────────────────────────────────────────────────────
+   BOTTOM MESH FIELD
+
+   A short, WIDE mesh wash pinned to the bottom of the viewport — the
+   NovaFlow footer look: a broad green band across the upper region blending
+   down into a large soft blue pool that spreads across the lower-center,
+   everything fading out to --page-bg on the sides and top. Kept SHORT in
+   height so it sits as a halo beneath the timeline, not a tall panel.
+
+   It's built from a handful of LARGE, overlapping, off-center radial blobs
+   (not a tight central pyramid) so the colour spreads horizontally and reads
+   diffuse/organic rather than as a solid triangle. Each blob fades to
+   transparent and a `to top` mask dissolves the upper edge, so the field
+   feathers softly on every side with no hard cut.
+
+   Colours + overall strength come from the --mesh-* tokens, so the whole
+   thing themes for free between light and dark (see the token blocks above).
+   ────────────────────────────────────────────────────────────────────── */
+body::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: clamp(200px, 30vh, 360px);
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--mesh-strength);
+  background:
+    /* broad green band across the upper region — two wide off-center lobes
+       so the green spreads horizontally instead of pointing to an apex */
+    radial-gradient(
+      55% 55% at 38% 24%,
+      color-mix(in srgb, var(--mesh-green) 78%, transparent) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      55% 55% at 64% 30%,
+      color-mix(in srgb, var(--mesh-teal) 75%, transparent) 0%,
+      transparent 72%
+    ),
+    /* wide teal transition spanning the middle */
+    radial-gradient(
+      80% 60% at 50% 56%,
+      color-mix(in srgb, var(--mesh-teal) 70%, transparent) 0%,
+      transparent 74%
+    ),
+    /* large blue pool spreading across the lower-center */
+    radial-gradient(
+      95% 75% at 50% 98%,
+      color-mix(in srgb, var(--mesh-blue) 88%, transparent) 0%,
+      transparent 76%
+    ),
+    /* deep blues push the field out toward the lower corners */
+    radial-gradient(
+      70% 70% at 8% 108%,
+      color-mix(in srgb, var(--mesh-blue-deep) 66%, transparent) 0%,
+      transparent 74%
+    ),
+    radial-gradient(
+      70% 70% at 92% 108%,
+      color-mix(in srgb, var(--mesh-blue-deep) 66%, transparent) 0%,
+      transparent 74%
+    );
+  -webkit-mask-image: linear-gradient(to top, #000 28%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 28%, transparent 100%);
+}
+
 @media (prefers-contrast: more) {
-  body::before {
+  body::before,
+  body::after {
     display: none;
   }
 }
