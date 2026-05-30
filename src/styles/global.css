@@ -5,6 +5,10 @@
   --fg-faint: rgba(10, 10, 10, 0.28);
   --selection-bg: #0a0a0a;
   --selection-fg: #f5edd8;
+  /* Hero font size — single source of truth referenced by the hero
+     title AND the About modal monogram so both render at identical
+     scale. */
+  --hero-fs: clamp(64px, 13vw, 220px);
 }
 
 html[data-palette-mode="dark"] {
@@ -93,8 +97,13 @@ body {
   align-items: center;
   gap: 10px;
   padding: 0 22px;
+  /* Explicit `font-family: inherit` beats the UA's `<button>` default
+     (e.g. `-webkit-small-control`) so the button-as-link picks up
+     Space Mono just like the anchor variants. */
+  font-family: inherit;
   font-size: clamp(11px, 0.85vw, 13px);
   font-weight: 700;
+  line-height: 1;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--fg);
@@ -113,6 +122,38 @@ body {
 .nav-link:focus-visible {
   background: rgba(255, 255, 255, 0.05);
   outline: none;
+}
+
+/* Button-styled nav item — only reset what the UA adds on <button>
+   that the .nav-link rule above doesn't already cover (background,
+   border, appearance, margin, tap-highlight). DO NOT reset the font
+   shorthand here — `font: inherit` would clobber .nav-link's font-
+   size and font-weight by inheriting from the parent. */
+.nav-link--button {
+  background: transparent;
+  border: 0;
+  border-right: 1px dashed var(--fg-mute);
+  margin: 0;
+  appearance: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Copy icon — sits where the ↗ arrow would for other links */
+.nav-arrow--copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: var(--fg-soft);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.nav-link:hover .nav-arrow--copy,
+.nav-link:focus-visible .nav-arrow--copy {
+  color: var(--fg);
+  transform: none;
 }
 
 /* Dimmed serial number that echoes the timeline indices (01 — 07) */
@@ -160,51 +201,240 @@ body {
   transform: translate(2px, -2px);
 }
 
-/* CTA — instead of a clean white block, paints the same scratched-film
-   image as its background (un-inverted). The dark grain becomes the
-   surface, white text + bracket ornaments sit on top. Reads as part
-   of the page's film aesthetic, not a marketing button.            */
+/* CTA — off-white surface with two stacked overlays. Brackets moved
+   inline (in JSX) so ::before / ::after are free for the texture +
+   gradient layers. */
 .nav-cta {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   margin-left: auto;
   padding: 0 22px;
 
-  background-color: #020308;
-  background-image: url("/bg-3-scratches-leak.jpg");
-  background-size: 150% auto;
-  background-position: right center;
-  background-repeat: no-repeat;
-
-  color: var(--fg);
+  /* Off-white instead of pure #fff — reads softer, less "marketing
+     button". Border tone matches the surface. */
+  background: #ededed;
+  color: #0a0a0a;
   font-size: clamp(11px, 0.85vw, 13px);
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   text-decoration: none;
 
-  border: 1px solid var(--fg-mute);
+  border: 1px solid #d0d0d0;
+  overflow: hidden;
   transition: opacity 0.2s ease;
 }
 
-/* `[ … ]` bracket ornaments echo the editorial/brutalist tone */
-.nav-cta::before,
-.nav-cta::after {
-  content: "[";
-  font-weight: 400;
-  color: var(--fg-soft);
+/* Overlay 1 — scratched-film texture, inverted so the surface is
+   mostly white with dark scratch lines. `mix-blend-mode: multiply`
+   over the off-white bg means only the scratch pixels darken
+   anything — bright areas of the texture vanish. */
+.nav-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/bg-3-scratches-leak.jpg");
+  background-size: 200% auto;
+  background-position: right center;
+  background-repeat: no-repeat;
+  filter: invert(1);
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  pointer-events: none;
 }
 
+/* Overlay 2 — bottom-to-top transparent black gradient. Adds a
+   subtle floor shadow that makes the CTA feel set in. */
 .nav-cta::after {
-  content: "]";
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.22),
+    rgba(0, 0, 0, 0) 65%
+  );
+  pointer-events: none;
+}
+
+/* Content sits above both overlays */
+.nav-cta > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-cta-bracket {
+  font-weight: 400;
+  color: rgba(10, 10, 10, 0.5);
+}
+
+.nav-cta-arrow {
+  font-weight: 400;
+  font-size: 1.1em;
+  line-height: 1;
 }
 
 .nav-cta:hover,
 .nav-cta:focus-visible {
   opacity: 0.88;
   outline: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* About modal — light surface inverted from the hero, sits over the    */
+/* whole page when the user opens it from the nav.                      */
+/* ------------------------------------------------------------------ */
+
+.about-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4vh 4vw;
+  animation: about-fade-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes about-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.about-modal {
+  position: relative;
+  background: #f9f9fa;
+  color: #0a0a0a;
+  /* Match the nav width EXACTLY: nav is left: 4.5vw; right: 4.5vw →
+     91vw wide. Setting both width and max-width to 91vw means the
+     modal aligns left- and right-edge with the nav. */
+  width: 91vw;
+  max-width: 91vw;
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: clamp(28px, 4vw, 64px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 2.8px 2.2px rgba(0, 0, 0, 0.03),
+    0 12.5px 10px rgba(0, 0, 0, 0.06),
+    0 41.8px 33.4px rgba(0, 0, 0, 0.08),
+    0 100px 80px rgba(0, 0, 0, 0.12);
+  animation: about-modal-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes about-modal-in {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.about-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 28px;
+  line-height: 1;
+  color: #0a0a0a;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.about-close:hover,
+.about-close:focus-visible {
+  opacity: 0.6;
+  outline: none;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(20px, 2.5vw, 40px);
+  margin-bottom: clamp(48px, 6vw, 96px);
+}
+
+@media (max-width: 900px) {
+  .about-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .about-grid { grid-template-columns: 1fr; }
+}
+
+.about-h {
+  font-size: clamp(11px, 0.95vw, 13px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0 0 14px 0;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.2);
+}
+
+.about-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: clamp(12px, 0.95vw, 14px);
+  font-weight: 400;
+  line-height: 1.45;
+  color: rgba(10, 10, 10, 0.75);
+}
+
+.about-link {
+  color: #0a0a0a;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  transition: border-color 0.15s ease;
+}
+.about-link:hover,
+.about-link:focus-visible {
+  border-bottom-color: #0a0a0a;
+  outline: none;
+}
+
+/* GABRIEL on left, M. on right — same space-between layout as the hero
+   line, sized to fit the modal width. */
+.about-monogram {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  width: 100%;
+  font-weight: 700;
+  font-size: clamp(40px, 11vw, 180px);
+  line-height: 0.85;
+  letter-spacing: -0.02em;
+  margin-bottom: clamp(16px, 2vw, 32px);
+  color: #0a0a0a;
+  user-select: none;
+}
+
+.about-subline {
+  width: 100%;
+  font-family: inherit;
+  font-weight: 400;
+  font-size: clamp(13px, 1.6vw, 22px);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 14px 0;
+  border-top: 1px dashed rgba(0, 0, 0, 0.2);
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.2);
+  margin-bottom: clamp(20px, 2.5vw, 36px);
+  color: #0a0a0a;
+}
+
+.about-copy {
+  text-align: center;
+  font-size: clamp(11px, 0.85vw, 12px);
+  color: rgba(10, 10, 10, 0.55);
+  margin: 0;
 }
 
 .nav-cta-arrow {
@@ -258,7 +488,9 @@ body {
   font-weight: 700;
   line-height: 0.92;
   letter-spacing: -0.045em;
-  font-size: clamp(64px, 13vw, 220px);
+  /* --hero-fs lives on :root so the About modal can reference the same
+     scale. */
+  font-size: var(--hero-fs);
   transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
     transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
@@ -283,7 +515,12 @@ body {
  * portion visible through the text is whatever would be at that viewport
  * coordinate — feels like a window cut into the page.
  */
-.hero-line::after {
+/* Line 1 (I'M) — single text, mask on the line itself */
+.hero-line-1 {
+  text-align: left;
+}
+
+.hero-line-1::after {
   content: attr(data-text);
   position: absolute;
   inset: 0;
@@ -305,19 +542,68 @@ body {
   opacity: 1;
 }
 
-.hero-line-1 {
-  text-align: left;
-}
-
+/* Line 2 (GABRIEL ... M.) — flex with two fragments. GABRIEL keeps its
+   22vw indent; M. is pushed to ~5vw from the hero-title's right edge
+   (which lands at ~9vw from the viewport edge — where the corner arrow
+   used to live, so the M. takes its place exactly). The flex
+   space-between provides the gap. */
 .hero-line-2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
   text-align: left;
   margin-top: 0.02em;
-  padding-left: 22vw;
+  gap: 0.4em;
+
+  /* Mathematical padding-left:
+     - At wide viewports the GABRIEL fragment indents up to 22 vw (the
+       original ST.MARTIN ratio).
+     - As the viewport narrows, padding shrinks so GABRIEL + min-gap +
+       M. exactly touch the right edge of the line, never overflow.
+     - clamp() floors at 0 so it can't go negative on tiny viewports.
+
+     Coefficient 5.6 estimates the rendered width of "GABRIEL" + gap +
+     "M." in font-size units:
+       Space Mono char width ≈ 0.6em, letter-spacing -0.045em → ~0.555em
+       per char. 9 chars × 0.555 ≈ 5.0; +0.4em gap; +0.2 safety = 5.6. */
+  padding-left: clamp(0px, calc(100% - 5.6 * var(--hero-fs)), 22vw);
+
+  /* padding-right: 0 anchors M.'s right edge to hero-title's right edge
+     (which sits at viewport-right − 4 vw, aligned with the timeline's
+     rightmost vertical line — the Stealth column). */
+  padding-right: 0;
 }
 
-/* Match the parent padding so the ::after text aligns with the visible text */
-.hero-line-2::after {
-  padding-left: 22vw;
+/* Each fragment gets its own clipping mask scoped to its own letters */
+.hero-line-fragment {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Trailing M. keeps the same hero font-size — fits because hero-line-2's
+   padding-left is now smaller (10 vw) and the flex space-between handles
+   the gap. */
+
+.hero-line-fragment::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  background-image: url("/bg-3-scratches-leak.jpg");
+  background-size: 150% auto;
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+
+  filter: invert(1);
+  opacity: 1;
 }
 
 .apos {

@@ -112,11 +112,12 @@ export default function Hero() {
 
   const heroAttenuation = Math.min(1, Math.max(0, progress / HERO_PHASE_END));
 
-  const scrollToIndex = (i: number) => {
+  /** Scroll to a specific experience index, or pass -1 to go home. */
+  const scrollTo = (i: number) => {
     const st = stRef.current;
     if (!st) return;
     const targetProgress =
-      HERO_PHASE_END + (i / (N - 1)) * (1 - HERO_PHASE_END);
+      i < 0 ? 0 : HERO_PHASE_END + (i / (N - 1)) * (1 - HERO_PHASE_END);
     const targetScroll = st.start + (st.end - st.start) * targetProgress;
     gsap.to(window, {
       scrollTo: targetScroll,
@@ -125,6 +126,8 @@ export default function Hero() {
       overwrite: "auto",
     });
   };
+
+  const scrollToIndex = (i: number) => scrollTo(i);
 
   // Keep the latest activeIdx in a ref so the keydown listener (mounted
   // once) always reads the current value without re-binding.
@@ -135,32 +138,83 @@ export default function Hero() {
     const onKey = (e: KeyboardEvent) => {
       // Don't intercept when the user is typing in an input/textarea/etc.
       const t = e.target as HTMLElement | null;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) {
+      if (
+        t &&
+        (t.tagName === "INPUT" ||
+          t.tagName === "TEXTAREA" ||
+          t.isContentEditable)
+      ) {
         return;
       }
       const cur = activeIdxRef.current;
-      if (cur < 0) return; // only navigate once we're in the timeline
+      // Navigation loop has N + 1 positions: home (-1) plus N experiences.
+      //   ArrowRight: home → 0 → 1 → ... → N-1 → home → 0 ...
+      //   ArrowLeft:  home → N-1 → N-2 → ... → 0 → home → N-1 ...
       let next: number | null = null;
       if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-        next = Math.min(N - 1, cur + 1);
+        next = cur + 1;
+        if (next >= N) next = -1; // wrap past last → home
       } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-        next = Math.max(0, cur - 1);
+        next = cur - 1;
+        if (next < -1) next = N - 1; // wrap past home → last
       }
       if (next !== null && next !== cur) {
         e.preventDefault();
-        scrollToIndex(next);
+        scrollTo(next);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // scrollToIndex closes over refs only, so once is fine
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // --- Hash deep-linking -------------------------------------------------
+  // On mount: if URL has #<slug>, scroll to that experience after ScrollTrigger
+  // is ready. On activeIdx change: update the URL hash (or clear it on home).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = decodeURIComponent(window.location.hash.replace(/^#/, ""));
+    if (!hash) return;
+    const idx = experiences.findIndex((e) => e.slug === hash);
+    if (idx < 0) return;
+    // Wait a tick so ScrollTrigger has measured the pin range.
+    const t = window.setTimeout(() => scrollTo(idx), 120);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (activeIdx < 0) {
+      // home — drop the hash without scrolling
+      if (window.location.hash) {
+        history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
+    } else {
+      const slug = experiences[activeIdx]?.slug;
+      if (slug) {
+        history.replaceState(null, "", `#${slug}`);
+      }
+    }
+  }, [activeIdx]);
+
+  // --- About modal ------------------------------------------------------
+  const [aboutOpen, setAboutOpen] = useState(false);
+
+  useEffect(() => {
+    if (!aboutOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAboutOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [aboutOpen]);
 
   return (
     <div ref={wrapperRef} className="hero-wrapper">
       <div ref={stageRef} className="hero-stage">
-        <Nav />
+        <Nav onAbout={() => setAboutOpen(true)} />
+        {aboutOpen && <About onClose={() => setAboutOpen(false)} />}
         <PlusCluster />
 
         <div
@@ -174,8 +228,11 @@ export default function Hero() {
           <div className="hero-line hero-line-1" data-text="I’M">
             I<span className="apos">&rsquo;</span>M
           </div>
-          <div className="hero-line hero-line-2" data-text="GABRIEL">
-            GABRIEL
+          <div className="hero-line hero-line-2">
+            <span className="hero-line-fragment" data-text="GABRIEL">
+              GABRIEL
+            </span>
+            <span className="hero-line-fragment" data-text="M.">M.</span>
           </div>
         </div>
 
@@ -213,8 +270,6 @@ export default function Hero() {
           ))}
         </div>
 
-        <Arrow />
-        <Logo />
 
         <div
           ref={timelineRef}
@@ -259,9 +314,6 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="scroll-hint" style={{ opacity: inTimeline ? 0 : 1 }}>
-          scroll or click to walk through 7 years
-        </div>
       </div>
     </div>
   );
@@ -273,60 +325,265 @@ function extractYears(dates: string): string {
   return `${m[1]}—${m[2] === "Present" ? "now" : m[2]}`;
 }
 
-function Nav() {
-  const links = [
-    {
-      idx: "01",
-      label: "LinkedIn",
-      href: "https://www.linkedin.com/in/gabrielmouallem",
-      external: true,
-    },
-    {
-      idx: "02",
-      label: "GitHub",
-      href: "https://github.com/gabrielmouallem",
-      external: true,
-    },
-    {
-      idx: "03",
-      label: "Email",
-      href: "mailto:gabriel.unifei2017@gmail.com",
-      external: false,
-    },
-  ];
+const EMAIL_ADDRESS = "gabriel.unifei2017@gmail.com";
+
+interface NavItemProps {
+  idx: string;
+  label: string;
+  href?: string;
+  external?: boolean;
+  onClick?: React.MouseEventHandler<HTMLElement>;
+  ariaLabel?: string;
+  /** Override the default `↗` icon (e.g. a copy icon for the email link). */
+  icon?: React.ReactNode;
+  iconClass?: string;
+}
+
+/**
+ * Unified nav item — same `01 / LABEL ↗` shape whether it's a real <a>
+ * (LinkedIn / GitHub / Email / etc.) or a <button> that opens a modal
+ * (About). The clipping mask + idx serial + arrow are always identical
+ * so every item reads the same.
+ */
+function NavItem({
+  idx,
+  label,
+  href,
+  external,
+  onClick,
+  ariaLabel,
+  icon,
+  iconClass,
+}: NavItemProps) {
+  const inner = (
+    <>
+      <span className="nav-idx" aria-hidden="true">
+        {idx} /
+      </span>
+      <span className="nav-label" data-text={label}>
+        {label}
+      </span>
+      <span className={`nav-arrow ${iconClass ?? ""}`.trim()} aria-hidden="true">
+        {icon ?? "↗"}
+      </span>
+    </>
+  );
+  if (href) {
+    return (
+      <a
+        className="nav-link"
+        href={href}
+        onClick={onClick}
+        aria-label={ariaLabel}
+        {...(external
+          ? { target: "_blank", rel: "noopener noreferrer" }
+          : {})}
+      >
+        {inner}
+      </a>
+    );
+  }
+  return (
+    <button
+      type="button"
+      className="nav-link nav-link--button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+    >
+      {inner}
+    </button>
+  );
+}
+
+function Nav({ onAbout }: { onAbout: () => void }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleEmailClick: React.MouseEventHandler<HTMLElement> = (e) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      e.preventDefault();
+      navigator.clipboard.writeText(EMAIL_ADDRESS).then(() => {
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 1800);
+      });
+    }
+  };
+
   return (
     <nav className="topnav" aria-label="Primary">
-      {links.map((l) => (
-        <a
-          key={l.idx}
-          className="nav-link"
-          href={l.href}
-          {...(l.external
-            ? { target: "_blank", rel: "noopener noreferrer" }
-            : {})}
-        >
-          <span className="nav-idx" aria-hidden="true">
-            {l.idx} /
-          </span>
-          <span className="nav-label" data-text={l.label}>
-            {l.label}
-          </span>
-          <span className="nav-arrow" aria-hidden="true">
-            ↗
-          </span>
-        </a>
-      ))}
+      <NavItem idx="01" label="About" onClick={onAbout} />
+      <NavItem
+        idx="02"
+        label="LinkedIn"
+        href="https://www.linkedin.com/in/gabrielmouallem"
+        external
+      />
+      <NavItem
+        idx="03"
+        label="GitHub"
+        href="https://github.com/gabrielmouallem"
+        external
+      />
+      <NavItem
+        idx="04"
+        label={copied ? "Copied" : "Email"}
+        href={`mailto:${EMAIL_ADDRESS}`}
+        onClick={handleEmailClick}
+        ariaLabel={
+          copied
+            ? "Email copied to clipboard"
+            : `Copy email ${EMAIL_ADDRESS}`
+        }
+        icon={<CopyIcon />}
+        iconClass="nav-arrow--copy"
+      />
       <a
         className="nav-cta"
         href="/Gabriel-Mouallem-Resume.pdf"
         download="Gabriel-Mouallem-Resume.pdf"
       >
+        <span className="nav-cta-bracket" aria-hidden="true">[</span>
         <span className="nav-cta-label">Download Resume</span>
-        <span className="nav-cta-arrow" aria-hidden="true">
-          ↓
-        </span>
+        <span className="nav-cta-arrow" aria-hidden="true">↓</span>
+        <span className="nav-cta-bracket" aria-hidden="true">]</span>
       </a>
     </nav>
+  );
+}
+
+function CopyIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="square"
+      strokeLinejoin="miter"
+      aria-hidden="true"
+    >
+      <rect x="9" y="9" width="12" height="12" />
+      <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+    </svg>
+  );
+}
+
+function About({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="about-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-label="About Gabriel Mouallem"
+      onClick={onClose}
+    >
+      <div className="about-modal" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className="about-close"
+          onClick={onClose}
+          aria-label="Close about panel"
+        >
+          ×
+        </button>
+
+        <div className="about-grid">
+          <section className="about-col">
+            <h3 className="about-h">About</h3>
+            <ul className="about-list">
+              <li>Product/customer-oriented problem solver</li>
+              <li>~6 years across IoT, AI/video, cloud infrastructure</li>
+              <li>
+                Currently building Managed PostgreSQL DBaaS on Kubernetes at
+                Latitude.sh
+              </li>
+              <li>Testing-first culture, BDD advocate</li>
+            </ul>
+          </section>
+
+          <section className="about-col">
+            <h3 className="about-h">Stack</h3>
+            <ul className="about-list">
+              <li>React / Next.js / TypeScript</li>
+              <li>Python (Django, FastAPI, Flask)</li>
+              <li>Node.js (Express, NestJS)</li>
+              <li>Kubernetes / CloudNativePG</li>
+              <li>React Native</li>
+              <li>PostgreSQL / Redis / S3</li>
+              <li>Jest, RTL, MSW, Storybook</li>
+            </ul>
+          </section>
+
+          <section className="about-col">
+            <h3 className="about-h">Contact</h3>
+            <ul className="about-list">
+              <li>
+                <a
+                  className="about-link"
+                  href={`mailto:${EMAIL_ADDRESS}`}
+                >
+                  {EMAIL_ADDRESS}
+                </a>
+              </li>
+              <li>Itajubá, Minas Gerais — Brazil</li>
+              <li>Remote / SF Bay Area</li>
+            </ul>
+          </section>
+
+          <section className="about-col">
+            <h3 className="about-h">Connect</h3>
+            <ul className="about-list">
+              <li>
+                <a
+                  className="about-link"
+                  href="https://www.linkedin.com/in/gabrielmouallem"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  LinkedIn ↗
+                </a>
+              </li>
+              <li>
+                <a
+                  className="about-link"
+                  href="https://github.com/gabrielmouallem"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  GitHub ↗
+                </a>
+              </li>
+              <li>
+                <a
+                  className="about-link"
+                  href="/Gabriel-Mouallem-Resume.pdf"
+                  download="Gabriel-Mouallem-Resume.pdf"
+                >
+                  Download CV ↓
+                </a>
+              </li>
+            </ul>
+          </section>
+        </div>
+
+        <div className="about-monogram" aria-hidden="true">
+          <span>GABRIEL</span>
+          <span>M.</span>
+        </div>
+
+        <div className="about-subline" aria-hidden="true">
+          <span>SOFTWARE</span>
+          <span>&amp;</span>
+          <span>PRODUCT</span>
+          <span>ENGINEER</span>
+        </div>
+
+        <p className="about-copy">
+          © 2026 Gabriel Mouallem. All rights reserved.
+        </p>
+      </div>
+    </div>
   );
 }
 

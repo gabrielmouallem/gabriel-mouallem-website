@@ -1,4 +1,6 @@
 export interface Experience {
+  /** URL-safe slug used for #hash deep-linking */
+  slug: string;
   company: string;
   shortLabel: string;
   role: string;
@@ -9,6 +11,7 @@ export interface Experience {
 
 export const experiences: Experience[] = [
   {
+    slug: "irricontrol",
     company: "Irricontrol",
     shortLabel: "Irricontrol",
     role: "Mobile Intern → Full Stack Developer",
@@ -23,6 +26,7 @@ export const experiences: Experience[] = [
     ],
   },
   {
+    slug: "ntt-data",
     company: "NTT DATA",
     shortLabel: "NTT DATA",
     role: "Software Developer",
@@ -34,6 +38,7 @@ export const experiences: Experience[] = [
     ],
   },
   {
+    slug: "accenture",
     company: "Accenture",
     shortLabel: "Accenture",
     role: "Sr. Application Development Analyst",
@@ -48,6 +53,7 @@ export const experiences: Experience[] = [
     ],
   },
   {
+    slug: "bees",
     company: "BEES (AB InBev)",
     shortLabel: "BEES",
     role: "Software Developer",
@@ -61,6 +67,7 @@ export const experiences: Experience[] = [
     ],
   },
   {
+    slug: "ai-fish",
     company: "Turing — AI.FISH",
     shortLabel: "AI.FISH",
     role: "Software Developer (remote, USD)",
@@ -74,6 +81,7 @@ export const experiences: Experience[] = [
     ],
   },
   {
+    slug: "latitude-sh",
     company: "Latitude.sh",
     shortLabel: "Latitude.sh",
     role: "Product & Software Engineer (Kubernetes)",
@@ -87,6 +95,7 @@ export const experiences: Experience[] = [
     ],
   },
   {
+    slug: "stealth",
     company: "Stealth",
     shortLabel: "Stealth",
     role: "Product & Software Engineer",
