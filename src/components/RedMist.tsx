@@ -40,10 +40,12 @@ export default function RedMist({
       }}
     >
       <MeshGradient
-        // Mostly black + dark-maroon stops with two red highlights. Under
-        // screen blend, only the red stops lift the dark backdrop — the
-        // black/maroon stops contribute ~nothing, leaving "patches" of
-        // red over an otherwise clean field.
+        /**
+         * Mostly black + dark-maroon stops with two red highlights.
+         * Under screen blend, only the red stops lift the dark
+         * backdrop — the black/maroon stops contribute ~nothing,
+         * leaving patches of red over an otherwise clean field.
+         */
         colors={[
           "#000000",
           "#1a0306",

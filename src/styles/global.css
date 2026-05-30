@@ -70,36 +70,85 @@ body {
 }
 
 /* ------------------------------------------------------------------ */
-/* Marquee                                                             */
+/* Top navigation                                                      */
 /* ------------------------------------------------------------------ */
 
-.marquee {
+.topnav {
   position: absolute;
   top: 0;
-  left: 0;
-  width: 100%;
-  padding: 18px 0 16px;
-  overflow: hidden;
-  white-space: nowrap;
-  font-size: clamp(13px, 1.05vw, 17px);
-  font-weight: 400;
-  letter-spacing: 0.01em;
+  /* Match the hero content inset (.exp-panels, .timeline, .logo all
+     use ~4.5vw side padding) so the nav lines up with the rest of
+     the page chrome instead of spanning the full viewport. */
+  left: 4.5vw;
+  right: 4.5vw;
+  display: flex;
+  align-items: stretch;
+  height: 44px;
   z-index: 4;
+  border-bottom: 1px solid var(--fg-faint);
 }
 
-.marquee-track {
-  display: inline-block;
-  white-space: nowrap;
-  animation: marquee-scroll 36s linear infinite;
-  will-change: transform;
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 22px;
+  font-size: clamp(11px, 0.85vw, 13px);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg);
+  text-decoration: none;
+  border-right: 1px solid var(--fg-faint);
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-@keyframes marquee-scroll {
-  from {
-    transform: translateX(0);
+.nav-link:first-child {
+  border-left: 1px solid var(--fg-faint);
+}
+
+.nav-link:hover,
+.nav-link:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  outline: none;
+}
+
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  padding: 0 26px;
+  /* Light bg + dark text — stands out vs the plain nav links */
+  background: var(--fg);
+  color: #0a0a0a;
+  font-size: clamp(11px, 0.85vw, 13px);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-left: 1px solid var(--fg-faint);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.nav-cta:hover,
+.nav-cta:focus-visible {
+  opacity: 0.88;
+  outline: none;
+}
+
+@media (max-width: 720px) {
+  .topnav {
+    height: 38px;
   }
-  to {
-    transform: translateX(-33.3333%);
+  .nav-link,
+  .nav-cta {
+    padding: 0 14px;
+    letter-spacing: 0.1em;
+  }
+  /* Hide secondary links on small screens, keep only Email + CTA */
+  .nav-link:nth-child(1),
+  .nav-link:nth-child(2) {
+    display: none;
   }
 }
 
@@ -232,11 +281,34 @@ body {
 
 /* Title — still the visual anchor but ~40 % smaller for proportion */
 .exp-company {
+  position: relative;
   font-size: clamp(30px, 4.5vw, 68px);
   font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 0.96;
   margin-bottom: 8px;
+}
+
+/* Same clipping-mask effect as the hero title — duplicates the visible
+   text via `content: attr(data-text)`, paints it with the inverted
+   static bg image clipped to the letter shapes. The underlying white
+   text stays visible; the inverted scratches read through the glyphs. */
+.exp-company::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("/bg-3-scratches-leak.jpg");
+  background-size: 150% auto;
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: invert(1);
+  opacity: 1;
 }
 
 /* Role + dates combined into one meta line saves vertical room */

@@ -160,7 +160,7 @@ export default function Hero() {
   return (
     <div ref={wrapperRef} className="hero-wrapper">
       <div ref={stageRef} className="hero-stage">
-        <Marquee />
+        <Nav />
         <PlusCluster />
 
         <div
@@ -193,7 +193,9 @@ export default function Hero() {
               className="exp-panel"
               data-active={activeIdx === i ? "true" : "false"}
             >
-              <h2 className="exp-company">{exp.company}</h2>
+              <h2 className="exp-company" data-text={exp.company}>
+                {exp.company}
+              </h2>
               <div className="exp-meta">
                 <span className="exp-role">{exp.role}</span>
                 <span className="exp-meta-sep"> · </span>
@@ -271,15 +273,36 @@ function extractYears(dates: string): string {
   return `${m[1]}—${m[2] === "Present" ? "now" : m[2]}`;
 }
 
-function Marquee() {
+function Nav() {
   return (
-    <div className="marquee" aria-hidden="true">
-      <div className="marquee-track">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <span key={i}>{MARQUEE_TEXT}</span>
-        ))}
-      </div>
-    </div>
+    <nav className="topnav" aria-label="Primary">
+      <a
+        className="nav-link"
+        href="https://www.linkedin.com/in/gabrielmouallem"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        LinkedIn
+      </a>
+      <a
+        className="nav-link"
+        href="https://github.com/gabrielmouallem"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        GitHub
+      </a>
+      <a className="nav-link" href="mailto:gabriel.unifei2017@gmail.com">
+        Email
+      </a>
+      <a
+        className="nav-cta"
+        href="/Gabriel-Mouallem-Resume.pdf"
+        download="Gabriel-Mouallem-Resume.pdf"
+      >
+        Download Resume <span aria-hidden="true">↓</span>
+      </a>
+    </nav>
   );
 }
 
