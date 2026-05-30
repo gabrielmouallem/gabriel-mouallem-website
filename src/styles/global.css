@@ -26,6 +26,12 @@
   --nav-hover-bg: rgba(0, 0, 0, 0.05);
   --about-backdrop-bg: rgba(20, 18, 16, 0.32);
 
+  /* Backing halo behind the scroll hint (keeps the copy legible over the
+     timeline lines + mesh). Original --page-bg colour, but semi-transparent
+     and paired with a backdrop blur on the pseudo so the mesh reads softly
+     through it instead of being hidden by a solid box. */
+  --hint-halo: color-mix(in srgb, var(--page-bg) 55%, transparent);
+
   /* About modal surface — INVERTED from the page so the card always
      contrasts the field behind it. On the light page the card is dark;
      the dark block below flips it to a light card. Foreground is exposed
@@ -56,9 +62,13 @@
   --accent: #c1ee3f;
   --accent-fg: #0a0a0a;
   --accent-line: #7f9e1d;
-  /* Lime for the hero "M." period. Tracks the PAGE surface: on the light
-     paper a vivid lime that still reads, brighter on the dark field. */
-  --hero-accent: #9ec400;
+  /* Experience bullet markers — blue on the light paper (ties into the mesh
+     blue), lime on the dark field (see the dark block). */
+  --bullet: var(--mesh-mid);
+  /* Hero "M." period. On the light paper it picks up the mesh blue
+     (--mesh-mid) so the dot ties into the bottom mesh gradient; dark mode
+     keeps the bright lime (see the dark block). */
+  --hero-accent: var(--mesh-mid);
 
   /* Résumé CTA — black surface with a light label on the bright page
      (the dark block flips this to a lime fill with dark label). */
@@ -85,30 +95,42 @@ html[data-palette-mode="dark"] {
   --nav-hover-bg: rgba(255, 255, 255, 0.05);
   --about-backdrop-bg: rgba(0, 0, 0, 0.55);
 
+  /* Same treatment on the dark field — semi-transparent page-bg + the
+     backdrop blur on the pseudo. */
+  --hint-halo: color-mix(in srgb, var(--page-bg) 55%, transparent);
+
   --about-surface: #f9f9fa;
   --about-fg: #0a0a0a;
   --about-fg-rgb: 10, 10, 10;
   --about-border: rgba(0, 0, 0, 0.1);
-  /* Dark page → light card: a vivid lime (not the dull olive line tone)
-     so the period still reads unmistakably as lime on the near-white
-     surface. */
-  --about-accent: #9ec400;
+  /* Dark page → LIGHT card. Like the light-surface hero period, the dot on
+     this light modal surface picks up the mesh blue (--mesh-mid) so every
+     light surface uses the blue accent; it reads cleanly on the near-white
+     card. (Light page → dark card keeps the bright lime, see :root.) */
+  --about-accent: var(--mesh-mid);
   --about-hairline: rgba(var(--about-fg-rgb), 0.42);
 
   /* On the near-black field the bright lime can run full strength for
      both fills and hairline markers. */
   --accent: #c6f24e;
   --accent-line: #c6f24e;
+  /* Dark mode keeps the lime bullet markers. */
+  --bullet: var(--accent-line);
   --hero-accent: #c6f24e;
 
-  --cta-bg: var(--accent);
-  --cta-fg: var(--accent-fg);
-  --cta-border: var(--accent);
+  /* Now that the lime + mesh colours are spread across the page, the résumé
+     CTA drops the lime fill on the dark field for a clean white surface with
+     dark text — a calmer anchor that lets the accents elsewhere carry the
+     colour. */
+  --cta-bg: #ffffff;
+  --cta-fg: #0a0a0a;
+  --cta-border: #ffffff;
   --cta-bracket: rgba(10, 10, 10, 0.5);
 
-  /* Lime nav icons on the dark field. */
-  --nav-icon: var(--accent);
-  --nav-icon-strong: var(--accent);
+  /* White nav icons on the dark field (soft white default, full white on
+     hover) — mirrors the light-mode treatment. */
+  --nav-icon: var(--fg-soft);
+  --nav-icon-strong: var(--fg);
 }
 
 /* ──────────────────────────────────────────────────────────────────────
@@ -139,17 +161,19 @@ html[data-palette-mode="dark"] {
   --grid-major: rgba(10, 10, 10, 0.05);
   --grid-dot: rgba(10, 10, 10, 0.09);
 
-  /* Bottom mesh triangle — green→blue field that rises from the bottom edge
-     (à la the NovaFlow footer), here kept SHORT so it reads as a soft halo
-     under the timeline rather than a full panel. The blobs fade to
-     transparent before the clip edge, so the triangle silhouette feathers
-     into the page instead of showing a hard cut.
-     Light paper: slightly muted so the lime/blue sit on the warm field. */
-  --mesh-green: #8fd14f;
-  --mesh-teal: #3aab8c;
-  --mesh-blue: #2f6fd0;
-  --mesh-blue-deep: #3b58bf;
-  --mesh-strength: 0.42;
+  /* Bottom mesh triangle — reproduces the NovaFlow footer: a row of vertical
+     bars sharing ONE continuous top→bottom colour ramp (lime → blue → dark),
+     with bell-curve heights, then a heavy blur that fuses them into a single
+     soft triangle. Because the colour only changes VERTICALLY (every bar is
+     the same gradient), there are no green/blue seams — the hue transition is
+     one smooth ramp.
+     Light paper: `multiply` lets the ramp tint the warm field; the dark base
+     deepens the corners exactly like the reference on white. */
+  --mesh-top: #b6e84e;
+  --mesh-mid: #1f6fd6;
+  --mesh-base: #050f24;
+  --mesh-blend: multiply;
+  --mesh-strength: 0.62;
 }
 html[data-palette-mode="dark"] {
   --grid-minor: rgba(255, 255, 255, 0.04);
@@ -157,13 +181,15 @@ html[data-palette-mode="dark"] {
   /* Dark-mode dots step down to match the other patterns. */
   --grid-dot: rgba(255, 255, 255, 0.07);
 
-  /* On the near-black field the mesh runs a touch brighter / more saturated
-     so the additive glow reads (matching the reference's vivid green→blue). */
-  --mesh-green: #9ee84a;
-  --mesh-teal: #2ecf92;
-  --mesh-blue: #3a82ef;
-  --mesh-blue-deep: #1f49c7;
-  --mesh-strength: 0.6;
+  /* On the near-black field `multiply` would crush to black, so we switch to
+     `screen` — the lime/blue ramp then reads as an additive glow rising off
+     the dark, while the near-black base contributes nothing (screen of black
+     is a no-op). Colours run brighter to carry on the dark field. */
+  --mesh-top: #9ee84a;
+  --mesh-mid: #2f7fff;
+  --mesh-base: #000000;
+  --mesh-blend: screen;
+  --mesh-strength: 0.425;
 }
 
 body::before {
@@ -240,76 +266,77 @@ html[data-bg="none"] body::before {
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   BOTTOM MESH FIELD
+   BOTTOM MESH TRIANGLE  (NovaFlow footer technique)
 
-   A short, WIDE mesh wash pinned to the bottom of the viewport — the
-   NovaFlow footer look: a broad green band across the upper region blending
-   down into a large soft blue pool that spreads across the lower-center,
-   everything fading out to --page-bg on the sides and top. Kept SHORT in
-   height so it sits as a halo beneath the timeline, not a tall panel.
+   A row of vertical bars pinned to the bottom of the viewport, each painted
+   with the SAME continuous colour ramp (lime at the top → blue → dark at the
+   base) and given a bell/triangle height profile via `--h`. A big blur then
+   fuses the bars into one smooth, soft-edged triangle of glow.
 
-   It's built from a handful of LARGE, overlapping, off-center radial blobs
-   (not a tight central pyramid) so the colour spreads horizontally and reads
-   diffuse/organic rather than as a solid triangle. Each blob fades to
-   transparent and a `to top` mask dissolves the upper edge, so the field
-   feathers softly on every side with no hard cut.
+   Why this beats the radial-blob version: the hue only changes vertically and
+   is identical across every bar, so there is no green↔blue seam — the colour
+   reads as one fused ramp. The triangle silhouette comes purely from the bar
+   heights, and the blur feathers all edges (no hard clip).
 
-   Colours + overall strength come from the --mesh-* tokens, so the whole
-   thing themes for free between light and dark (see the token blocks above).
+   The bars are emitted at BUILD TIME from index.astro (no client JS, stays
+   static like the rest of the page). Colours + blend + strength come from the
+   --mesh-* tokens, so it themes for free (multiply on light, screen on dark).
    ────────────────────────────────────────────────────────────────────── */
-body::after {
-  content: "";
+.bg-mesh {
   position: fixed;
-  left: 0;
-  right: 0;
+  left: 50%;
   bottom: 0;
-  height: clamp(200px, 30vh, 360px);
-  z-index: -1;
+  transform: translateX(-50%);
+  /* Wider than the viewport so the triangle's base runs off both edges
+     (the reference uses a 120%-wide, -10%-offset container). */
+  width: 124vw;
+  /* 2× the previous height, still a short footer band rather than a panel. */
+  height: clamp(400px, 60vh, 720px);
+  z-index: 0;
   pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
   opacity: var(--mesh-strength);
-  background:
-    /* broad green band across the upper region — two wide off-center lobes
-       so the green spreads horizontally instead of pointing to an apex */
-    radial-gradient(
-      55% 55% at 38% 24%,
-      color-mix(in srgb, var(--mesh-green) 78%, transparent) 0%,
-      transparent 72%
-    ),
-    radial-gradient(
-      55% 55% at 64% 30%,
-      color-mix(in srgb, var(--mesh-teal) 75%, transparent) 0%,
-      transparent 72%
-    ),
-    /* wide teal transition spanning the middle */
-    radial-gradient(
-      80% 60% at 50% 56%,
-      color-mix(in srgb, var(--mesh-teal) 70%, transparent) 0%,
-      transparent 74%
-    ),
-    /* large blue pool spreading across the lower-center */
-    radial-gradient(
-      95% 75% at 50% 98%,
-      color-mix(in srgb, var(--mesh-blue) 88%, transparent) 0%,
-      transparent 76%
-    ),
-    /* deep blues push the field out toward the lower corners */
-    radial-gradient(
-      70% 70% at 8% 108%,
-      color-mix(in srgb, var(--mesh-blue-deep) 66%, transparent) 0%,
-      transparent 74%
-    ),
-    radial-gradient(
-      70% 70% at 92% 108%,
-      color-mix(in srgb, var(--mesh-blue-deep) 66%, transparent) 0%,
-      transparent 74%
-    );
-  -webkit-mask-image: linear-gradient(to top, #000 28%, transparent 100%);
-  mask-image: linear-gradient(to top, #000 28%, transparent 100%);
+  /* Heavy blur fuses the discrete bars into a single soft field; saturate
+     keeps the lime/blue vivid through the blur. No overflow:hidden so the
+     blur can feather past the box instead of being re-clipped to a hard top. */
+  filter: blur(58px) saturate(135%);
+  mix-blend-mode: var(--mesh-blend);
+  will-change: transform;
+}
+
+.bg-mesh-bar {
+  flex: 1 1 0;
+  min-width: 0;
+  /* Slight overlap so neighbours merge cleanly once blurred. */
+  margin: 0 -3px;
+  /* `--h` (0–100) is set per-bar inline from the build-time height curve. */
+  height: calc(var(--h, 0) * 1%);
+  background: linear-gradient(
+    180deg,
+    var(--mesh-top) 0%,
+    var(--mesh-mid) 55%,
+    var(--mesh-base) 92%
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* (Mesh is intentionally static — no animation. Block kept as a marker in
+     case a subtle breathe is ever opted into.) */
 }
 
 @media (prefers-contrast: more) {
   body::before,
-  body::after {
+  .bg-mesh {
+    display: none;
+  }
+}
+
+/* Hide the TEMP background-pattern picker on small screens — graph is the
+   default, so the selector isn't needed in the mobile chrome. */
+@media (max-width: 720px) {
+  .bg-toggle {
     display: none;
   }
 }
@@ -869,6 +896,14 @@ body {
   display: inline-flex;
 }
 
+/* Hide the pattern picker on mobile (matches the nav-link collapse
+   breakpoint); the background still defaults to graph. */
+@media (max-width: 900px) {
+  .bg-toggle {
+    display: none;
+  }
+}
+
 .bg-toggle-btn {
   appearance: none;
   cursor: pointer;
@@ -1121,7 +1156,7 @@ body {
   top: 0.6em;
   width: 10px;
   height: 1.5px;
-  background: var(--accent-line);
+  background: var(--bullet);
 }
 
 /* ------------------------------------------------------------------ */
@@ -1306,7 +1341,8 @@ body {
 .timeline-line {
   position: absolute;
   top: 72px;
-  bottom: 14px;
+  /* Run the lines all the way to the very bottom edge of the viewport. */
+  bottom: 0;
   left: 0;
   width: 1px;
   background: var(--fg);
@@ -1422,10 +1458,21 @@ body {
   inset: -0.7em -2.4em;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(
+  /* Semi-transparent fill + backdrop blur soften the mesh/lines behind the
+     copy; the radial mask feathers the rectangular blur edge so it doesn't
+     read as a hard box. */
+  background: var(--hint-halo);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  -webkit-mask-image: radial-gradient(
     120% 150% at 50% 50%,
-    var(--page-bg) 38%,
-    transparent 78%
+    #000 42%,
+    transparent 82%
+  );
+  mask-image: radial-gradient(
+    120% 150% at 50% 50%,
+    #000 42%,
+    transparent 82%
   );
 }
 
@@ -1486,8 +1533,19 @@ body {
     height: 56px;
   }
 
+  /* Anchor the timeline to the bottom as a band of BOUNDED height instead of
+     a tall 64vh→100vh strip. The index markers sit at the band's top and
+     their vertical lines fill it, so the whole timeline always lives in the
+     lower clamp() strip and can never grow tall enough to overlap the
+     (variable-length, pixel-height) experience bullets above — no matter how
+     far the copy wraps on a narrow screen.
+       band height  = clamp(160px, 26vh, 260px)
+       lines        = band − line.top(26px) − 14px  (bounded with the band)
+       markers top  ≈ 100vh − band height           (stays below the bullets) */
   .timeline {
-    top: 64vh;
+    top: auto;
+    bottom: 0;
+    height: clamp(160px, 26vh, 260px);
   }
 
   .timeline-label {
@@ -1508,6 +1566,8 @@ body {
   .timeline-line,
   .timeline-col:nth-child(even) .timeline-line {
     top: 26px;
+    /* Run the lines all the way to the very bottom edge of the screen. */
+    bottom: 0;
   }
 
   /* Expand the tap target. The column box is 0-width (just the line), so

@@ -21,6 +21,11 @@ const canonical = SITE.url;
 const ogImage = new URL(SITE.ogImage.replace(/^\//, ""), SITE.url).href;
 const personSchema = buildPersonSchema();
 const websiteSchema = buildWebsiteSchema();
+
+// Bell/triangle height profile (0–100) for the bottom mesh bars — mirrors the
+// NovaFlow reference's [25 … 100 … 25] curve, with more steps for a smoother
+// fuse once blurred. Each value drives `--h` on a .bg-mesh-bar (see global.css).
+const meshBars = [25, 38, 52, 66, 80, 93, 100, 93, 80, 66, 52, 38, 25];
 ---
 
 <html lang="en" data-palette-mode="dark" data-bg="graph">
@@ -120,6 +125,14 @@ const websiteSchema = buildWebsiteSchema();
         augmentation and outsourcing engagements.
       </p>
     </header>
+
+    {/* Bottom mesh triangle (NovaFlow footer technique): vertical bars sharing
+        one lime→blue→dark ramp, bell-curve heights, fused by a heavy blur in
+        CSS. Sits behind the hero (z-index:0 < .hero-wrapper z-index:1) and
+        themes via the --mesh-* tokens. Emitted statically — no client JS. */}
+    <div class="bg-mesh" aria-hidden="true">
+      {meshBars.map((h) => <span class="bg-mesh-bar" style={`--h:${h}`}></span>)}
+    </div>
 
     {/* The page sits directly on the solid `--page-bg` (see global.css);
         the former scratch/fabric/noise/lens-flare overlay layers were
