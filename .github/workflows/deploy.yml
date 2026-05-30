@@ -18,6 +18,10 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Serve under the project sub-path on GitHub Pages. Local dev/build
+      # without this var stays at "/".
+      ASTRO_BASE: /gabriel-mouallem-website
     steps:
       - name: Checkout
         uses: actions/checkout@v4
