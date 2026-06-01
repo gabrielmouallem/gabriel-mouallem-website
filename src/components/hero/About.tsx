@@ -61,6 +61,7 @@ export function About({ onClose }: { onClose: () => void }) {
           <section className="about-col">
             <h3 className="about-h">Contact</h3>
             <ul className="about-list">
+              <li>Gabriel José Mouallem Rodrigues</li>
               <li>
                 <a
                   className="about-link"
