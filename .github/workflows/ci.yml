@@ -29,6 +29,12 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # Generates .astro/types.d.ts (gitignored) so tsgo sees Astro's
+      # ImportMeta augmentation (import.meta.env) — otherwise typecheck fails
+      # on a clean checkout.
+      - name: Generate Astro types
+        run: bun run astro sync
+
       - name: Typecheck
         run: bun run typecheck
 
