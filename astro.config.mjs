@@ -15,5 +15,17 @@ const base = process.env.ASTRO_BASE ?? '/';
 export default defineConfig({
   site: 'https://gabrielm.dev',
   base,
-  integrations: [react(), sitemap()],
+  integrations: [
+    react(),
+    // `lastmod` is the only sitemap hint Google actually honours, so stamp it
+    // with the build time (≈ last deploy). `changefreq`/`priority` are ignored
+    // by Google but read by some crawlers (e.g. Bing); kept honest at `weekly`
+    // for a single, infrequently-changing page — NOT `daily`, which would be
+    // inaccurate and is a no-op for Google anyway.
+    sitemap({
+      lastmod: new Date(),
+      changefreq: 'weekly',
+      priority: 1,
+    }),
+  ],
 });
