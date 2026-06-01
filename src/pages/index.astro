@@ -103,7 +103,7 @@ const meshBars = [25, 38, 52, 66, 80, 93, 100, 93, 80, 66, 52, 38, 25];
               : pref;
           document.documentElement.dataset.paletteMode = mode;
           var meta = document.querySelector('meta[name="theme-color"]');
-          if (meta) meta.setAttribute("content", mode === "light" ? "#e9e6df" : "#020308");
+          if (meta) meta.setAttribute("content", mode === "light" ? "#ffffff" : "#020308");
           // TEMP background-pattern comparison: resolve the stored choice
           // (graph | dots | lines | none) before first paint.
           var bg = localStorage.getItem("bg-pattern");

@@ -44,7 +44,7 @@ export function usePaletteMode() {
     document.documentElement.dataset.paletteMode = next;
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta)
-      meta.setAttribute("content", next === "light" ? "#e9e6df" : "#020308");
+      meta.setAttribute("content", next === "light" ? "#ffffff" : "#020308");
   }, []);
 
   // Hydrate the stored preference and resolve it to a concrete mode. (The

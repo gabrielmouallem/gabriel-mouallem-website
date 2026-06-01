@@ -22,7 +22,7 @@
   --hero-fs: clamp(64px, 13vw, 220px);
 
   /* Page + chrome surfaces */
-  --page-bg: #e9e6df;
+  --page-bg: #ffffff;
   --nav-hover-bg: rgba(0, 0, 0, 0.05);
   --about-backdrop-bg: rgba(20, 18, 16, 0.32);
 
