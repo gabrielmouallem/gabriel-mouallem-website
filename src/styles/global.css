@@ -151,16 +151,6 @@ html[data-palette-mode="dark"] {
    ────────────────────────────────────────────────────────────────────── */
 :root {
   --grid-gutter: 4.5vw;
-  /* Span uses 100% of body::before (a position:fixed layer = the scrollbar-
-     EXCLUDED content box), NOT 100vw. The nav/timeline/panels all resolve
-     their 4.5vw right gutter against that same content box, so when a vertical
-     scrollbar is present (vw includes its gutter, the content box does not) a
-     vw-based module would drift left of the content by one scrollbar-width,
-     accumulating across the 6 columns. Anchoring the module to 100% keeps every
-     primary line locked to a timeline column / content edge. With no scrollbar
-     (mobile / overlay scrollbars) 100% == 100vw, so this is a no-op there. */
-  --grid-module: calc((100% - var(--grid-gutter) * 2) / 6);
-  --grid-cell: calc(var(--grid-module) / 8);
 
   /* Line patterns (graph + lines) — kept subtle. --grid-dot is the dot
      pattern's own alpha so it can stay stronger in light mode (the one
@@ -362,6 +352,11 @@ html {
      lets the fixed `body::before` grid layer (z-index:-1) paint above this
      fill instead of being hidden behind body's own opaque background. */
   background: var(--page-bg);
+  /* Query container so the grid can size off `cqw` (content-box inline size,
+     scrollbar-excluded) and stay both square and aligned to the page chrome.
+     `inline-size` containment is size-only — it does NOT establish a containing
+     block for the fixed grid layer, so body::before stays viewport-fixed. */
+  container-type: inline-size;
 }
 
 html,
@@ -375,6 +370,16 @@ body {
 }
 
 body {
+  /* Grid module is derived from `cqw` (1% of the query container's content-box
+     inline size — see `container-type` on <html> below), NOT `100vw`. cqw stays
+     width-based on BOTH background-size axes (so the cells stay SQUARE, unlike a
+     raw `100%` which resolves against the element HEIGHT on the Y axis), AND it
+     reads the scrollbar-EXCLUDED content box — the same box the nav/timeline
+     resolve their 4.5vw gutter against. That keeps every primary line locked to
+     a timeline column / content edge regardless of the scrollbar, while the
+     gutter itself stays 4.5vw to match the chrome. body::before inherits these. */
+  --grid-module: calc((100cqw - var(--grid-gutter) * 2) / 6);
+  --grid-cell: calc(var(--grid-module) / 8);
   overflow-x: hidden;
   min-height: 100vh;
   /* dvh = the *visible* viewport, so the page fills exactly the area not
@@ -905,7 +910,9 @@ body {
 .palette-toggle {
   position: absolute;
   top: 7.5vh;
-  right: 5vw;
+  /* 4.5vw (not 5vw) so the control's right edge lands on the rightmost grid
+     line / content gutter — the same edge the nav and timeline align to. */
+  right: 4.5vw;
   z-index: 4;
 }
 
@@ -914,7 +921,8 @@ body {
 .bg-toggle {
   position: absolute;
   top: calc(7.5vh + 42px);
-  right: 5vw;
+  /* Match .palette-toggle: right edge on the rightmost grid line / content gutter. */
+  right: 4.5vw;
   z-index: 4;
 }
 
