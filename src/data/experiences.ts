@@ -108,6 +108,7 @@ export const experiences: Experience[] = [
     role: "Product & Software Engineer",
     dates: "Apr 2026 — Present",
     location: "San Francisco Bay Area",
+    annotation: "into AI now — building a digital worker :)",
     bullets: ["Coming soon…"],
   },
 ];
