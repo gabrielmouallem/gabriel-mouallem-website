@@ -1562,6 +1562,32 @@ body {
   }
 }
 
+/* The experience copy can overrun the bottom timeline band and overlap the
+   bullets. It's driven by how much VERTICAL room is left for the copy, which
+   two independent axes erode — so two targeted shrinks of the band, each a
+   no-op outside its case:
+     - on the desktop timeline, `height` is over-constrained (top:58vh AND
+       bottom:0 are both set) and therefore ignored, so these only ever touch
+       the mobile bottom band;
+     - both must come AFTER the 720px block to win on source order (equal
+       specificity).
+
+   Axis 1 — ultra-narrow widths (≤350px): copy wraps to more lines, so it runs
+   tall regardless of viewport height. Band ~25% of the 720px rule (×0.75). */
+@media (max-width: 350px) {
+  .timeline {
+    height: clamp(120px, 19.5vh, 195px);
+  }
+}
+
+/* Axis 2 — short heights (≤740px, e.g. iPhone SE 375×667): little vertical room
+   for a long experience even at >350px wide. */
+@media (max-height: 740px) {
+  .timeline {
+    height: clamp(120px, 17vh, 160px);
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Reduced motion fallback                                             */
 /* ------------------------------------------------------------------ */
