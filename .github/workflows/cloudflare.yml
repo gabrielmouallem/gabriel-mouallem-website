@@ -33,4 +33,7 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # v4 is required to understand the static-assets `assets` config;
+          # the action otherwise defaults to an old v3 that errors on missing entry-point.
+          wranglerVersion: "4.96.0"
           command: deploy
