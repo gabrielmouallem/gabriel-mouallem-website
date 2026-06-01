@@ -13,6 +13,7 @@ import { useBgPattern } from "./hero/useBgPattern";
 import { useExperienceTimeline } from "./hero/useExperienceTimeline";
 import { useHashDeepLink } from "./hero/useHashDeepLink";
 import { usePaletteMode } from "./hero/usePaletteMode";
+import { useScrollLock } from "./hero/useScrollLock";
 
 /**
  * Hero island — composes the scroll-driven experience timeline, palette
@@ -27,7 +28,6 @@ export default function Hero() {
     labelRefs,
     inTimeline,
     activeIdx,
-    heroAttenuation,
     compact,
     scrollTo,
   } = useExperienceTimeline();
@@ -35,6 +35,9 @@ export default function Hero() {
   const { preference, choosePreference } = usePaletteMode();
   const { pattern, choose } = useBgPattern();
   const { aboutOpen, openAbout, closeAbout } = useAboutModal();
+
+  // Lock page scroll (pin-safe — see the hook) whenever the modal is open.
+  useScrollLock(aboutOpen);
 
   useHashDeepLink({ activeIdx, aboutOpen, onOpenAbout: openAbout, scrollTo });
 
@@ -46,7 +49,7 @@ export default function Hero() {
         <PaletteToggle preference={preference} onChoose={choosePreference} />
         <BgToggle pattern={pattern} onChoose={choose} />
 
-        <HeroTitle inTimeline={inTimeline} heroAttenuation={heroAttenuation} />
+        <HeroTitle inTimeline={inTimeline} />
 
         <ExperienceAnnotations activeIdx={activeIdx} />
         <ExperiencePanels activeIdx={activeIdx} />

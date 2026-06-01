@@ -8,12 +8,12 @@ import { HERO_PHASE_END } from "./constants";
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 /**
- * Owns the pinned-scroll experience timeline: the GSAP ScrollTrigger pin,
- * scroll progress, the derived active-experience index, the compact-label
- * measurement, programmatic scroll-to, and keyboard navigation.
- *
- * Exposes refs to attach to the wrapper/stage/timeline DOM plus the derived
- * presentational state so the view layer stays free of scroll mechanics.
+ * Owns the pinned-scroll experience timeline. The continuous scroll progress
+ * is intentionally kept OUT of React state — only the two discrete values the
+ * view needs (the phase flag + the active index) are committed, and only when
+ * they change — so the scrub never re-renders the hero tree. (The per-frame
+ * setState that used to push raw progress was what starved the main thread and
+ * froze the scroll on mobile.)
  */
 export function useExperienceTimeline() {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -22,8 +22,14 @@ export function useExperienceTimeline() {
   const labelRefs = useRef<Array<HTMLDivElement | null>>([]);
   const stRef = useRef<ScrollTrigger | null>(null);
 
-  const [progress, setProgress] = useState(0);
+  const [inTimeline, setInTimeline] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
   const [compact, setCompact] = useState(false);
+
+  // Last-committed discrete values, compared on every frame inside onUpdate so
+  // we can bail before ever calling a setter when nothing actually changed.
+  const lastInRef = useRef(false);
+  const lastIdxRef = useRef(-1);
 
   useLayoutEffect(() => {
     if (typeof window === "undefined") return;
@@ -40,6 +46,21 @@ export function useExperienceTimeline() {
     const N = experiences.length;
     const heroEnd = HERO_PHASE_END;
 
+    // Skip ScrollTrigger refreshes caused purely by the mobile URL-bar
+    // show/hide (which only changes viewport HEIGHT). On iOS — portrait
+    // especially — that resize fires repeatedly while scrolling, and a full
+    // refresh() mid-scroll is exactly what makes a pinned timeline lurch.
+    // Genuine resizes (orientation, desktop window) still refresh. Set here
+    // (client-only) rather than at module scope so it doesn't run during SSR.
+    ScrollTrigger.config({ ignoreMobileResize: true });
+
+    // Touch-PRIMARY devices only (phones/tablets, no mouse). Hands scrolling to
+    // the JS thread: keeps the viewport height constant, kills the rubber-band
+    // overscroll, and syncs repaints with the pin so it stops jumping. Left OFF
+    // for mouse + hybrid devices so desktop wheel feel stays fully native.
+    const touchPrimary = ScrollTrigger.isTouch === 1;
+    if (touchPrimary) ScrollTrigger.normalizeScroll(true);
+
     const ctx = gsap.context(() => {
       stRef.current = ScrollTrigger.create({
         trigger: wrapper,
@@ -49,7 +70,24 @@ export function useExperienceTimeline() {
         pinSpacing: true,
         scrub: 0.4,
         invalidateOnRefresh: true,
-        onUpdate: (self) => setProgress(self.progress),
+        onUpdate: (self) => {
+          const p = self.progress;
+          const nextIn = p >= heroEnd * 0.5;
+          const tp = nextIn ? (p - heroEnd) / (1 - heroEnd) : 0;
+          const nextIdx = nextIn
+            ? Math.min(N - 1, Math.max(0, Math.round(tp * (N - 1))))
+            : -1;
+
+          // Cheap ref compare every frame; setState only at the ~8 boundaries.
+          if (nextIn !== lastInRef.current) {
+            lastInRef.current = nextIn;
+            setInTimeline(nextIn);
+          }
+          if (nextIdx !== lastIdxRef.current) {
+            lastIdxRef.current = nextIdx;
+            setActiveIdx(nextIdx);
+          }
+        },
         snap: {
           snapTo: (value) => {
             if (value < heroEnd * 0.45) return 0;
@@ -65,18 +103,15 @@ export function useExperienceTimeline() {
       });
     }, wrapperRef);
 
-    const onResize = () => ScrollTrigger.refresh();
-    window.addEventListener("resize", onResize);
-
     return () => {
-      window.removeEventListener("resize", onResize);
       ctx.revert();
       stRef.current = null;
+      if (touchPrimary) ScrollTrigger.normalizeScroll(false);
     };
   }, []);
 
   // DOM measurement: detect when labels would overlap and switch to compact
-  // mode (hide inactive labels). This is the foundation for mobile.
+  // mode (hide inactive labels). Independent of scroll — only fires on resize.
   useEffect(() => {
     const container = timelineRef.current;
     if (!container) return;
@@ -101,20 +136,6 @@ export function useExperienceTimeline() {
   }, []);
 
   const N = experiences.length;
-  // Hysteresis: once progress crosses half of the hero phase, treat it as
-  // "in timeline" even if scrub momentarily dips below HERO_PHASE_END. The
-  // snap zones already pull the user firmly to either 0 or heroEnd, so the
-  // threshold at heroEnd*0.5 sits inside the larger snap zone and prevents
-  // the idx-0 ↔ hero flicker on small mouse-wheel bumps at the boundary.
-  const inTimeline = progress >= HERO_PHASE_END * 0.5;
-  const tp = inTimeline
-    ? (progress - HERO_PHASE_END) / (1 - HERO_PHASE_END)
-    : 0;
-  const activeIdx = inTimeline
-    ? Math.min(N - 1, Math.round(tp * (N - 1)))
-    : -1;
-
-  const heroAttenuation = Math.min(1, Math.max(0, progress / HERO_PHASE_END));
 
   /** Scroll to a specific experience index, or pass -1 to go home. */
   const scrollTo = (i: number) => {
@@ -131,13 +152,17 @@ export function useExperienceTimeline() {
     });
   };
 
-  // Keep the latest activeIdx in a ref so the keydown listener (mounted
-  // once) always reads the current value without re-binding.
+  // Keep the latest activeIdx in a ref so the keydown listener (mounted once)
+  // always reads the current value without re-binding.
   const activeIdxRef = useRef(activeIdx);
   activeIdxRef.current = activeIdx;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Don't drive the (possibly scroll-locked) timeline while a modal
+      // dialog is open in front of it.
+      if (document.querySelector('[aria-modal="true"]')) return;
+
       // Don't intercept when the user is typing in an input/textarea/etc.
       const t = e.target as HTMLElement | null;
       if (
@@ -177,7 +202,6 @@ export function useExperienceTimeline() {
     labelRefs,
     inTimeline,
     activeIdx,
-    heroAttenuation,
     compact,
     scrollTo,
   };

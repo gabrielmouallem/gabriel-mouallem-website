@@ -466,7 +466,14 @@ body {
 .nav-link:hover,
 .nav-link:focus-visible {
   background: var(--nav-hover-bg);
-  outline: none;
+}
+
+/* Visible keyboard focus ring. Inset so it reads clearly inside the packed,
+   dashed-separated nav row without spilling over neighbouring items or the
+   nav's own bottom border. Mirrors the .seg-btn focus treatment. */
+.nav-link:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: -2px;
 }
 
 /* Button-styled nav item — only reset what the UA adds on <button>
@@ -581,7 +588,14 @@ body {
 .nav-cta:hover,
 .nav-cta:focus-visible {
   opacity: 0.88;
-  outline: none;
+}
+
+/* Inset ring drawn in the CTA's own label colour, so it contrasts the filled
+   surface (a --fg ring would vanish on the black/white CTA) and isn't clipped
+   by the CTA's overflow:hidden. */
+.nav-cta:focus-visible {
+  outline: 2px solid var(--cta-fg);
+  outline-offset: -4px;
 }
 
 /* ------------------------------------------------------------------ */
@@ -619,6 +633,7 @@ body {
   max-width: 91vw;
   max-height: 88vh;
   overflow-y: auto;
+  overscroll-behavior: contain;
   /* Tighter vertical padding so the modal isn't tall for no reason */
   padding: clamp(20px, 2.6vw, 44px) clamp(28px, 4vw, 64px);
   border: 1px solid var(--about-border);
@@ -633,6 +648,13 @@ body {
 @keyframes about-modal-in {
   from { transform: translateY(16px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+
+/* The modal card is the focus trap's initial target (tabindex=-1). It takes
+   focus programmatically on open — the dialog appearing IS the indication, so
+   suppress the ring on the container itself (real controls inside still ring). */
+.about-modal:focus {
+  outline: none;
 }
 
 .about-close {
@@ -650,10 +672,17 @@ body {
   cursor: pointer;
   transition: opacity 0.15s ease;
 }
-.about-close:hover,
-.about-close:focus-visible {
+.about-close:hover {
   opacity: 0.6;
-  outline: none;
+}
+
+/* Keyboard focus: full-strength glyph plus a visible ring in the card's own
+   foreground colour (contrasts the inverted modal surface in both palettes). */
+.about-close:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--about-fg);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .about-grid {
@@ -1148,12 +1177,20 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* The column button is 0-width (just the line), so an outline on it can't read
+   as a focus indicator. Put the ring on the visible label instead and bring the
+   line to full opacity. */
 .timeline-col:focus-visible {
   outline: none;
 }
 
 .timeline-col:focus-visible .timeline-line {
   opacity: 1;
+}
+
+.timeline-col:focus-visible .timeline-label {
+  outline: 2px solid var(--fg);
+  outline-offset: 4px;
 }
 
 /* Inactive columns are de-emphasized, but kept legible enough that the small
@@ -1246,6 +1283,19 @@ body {
    it should always sit centered over the line, never offset to a side. */
 .timeline[data-compact="true"] .timeline-col[data-active="true"] .timeline-label,
 .timeline[data-compact="true"] .timeline-col[data-last="true"][data-active="true"] .timeline-label {
+  left: 0;
+  right: auto;
+  text-align: center;
+  transform: translate(-50%, 0) scale(1.06);
+  transform-origin: center top;
+}
+
+/* Compact mode hides inactive labels, which would hide the focus ring too when
+   a keyboard user tabs to a non-active column. Reveal the focused label and
+   center it over its line, matching the active-label treatment above. */
+.timeline[data-compact="true"] .timeline-col:focus-visible .timeline-label {
+  opacity: 1;
+  pointer-events: none;
   left: 0;
   right: auto;
   text-align: center;

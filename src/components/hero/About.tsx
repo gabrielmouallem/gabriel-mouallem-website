@@ -1,18 +1,28 @@
 import { SITE } from "../../data/site";
 import { withBase } from "../../lib/base";
+import { useFocusTrap } from "./useFocusTrap";
 
 const EMAIL_ADDRESS = SITE.email;
 
 export function About({ onClose }: { onClose: () => void }) {
+  // The dialog semantics belong on the modal card (the element that carries
+  // the accessible name), not the dimming backdrop. The focus trap moves focus
+  // there on open, cycles Tab within it, and restores focus to the trigger on
+  // close. Escape-to-close is handled by useAboutModal.
+  const modalRef = useFocusTrap<HTMLDivElement>();
+
   return (
-    <div
-      className="about-backdrop"
-      role="dialog"
-      aria-modal="true"
-      aria-label={`About ${SITE.name}`}
-      onClick={onClose}
-    >
-      <div className="about-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="about-backdrop" onClick={onClose}>
+      <div
+        ref={modalRef}
+        className="about-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`About ${SITE.name}`}
+        tabIndex={-1}
+        data-scroll-lock-scrollable
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           type="button"
           className="about-close"
