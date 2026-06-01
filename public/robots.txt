@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://gabrielmouallem.github.io/gabriel-mouallem-website/sitemap-index.xml
+Sitemap: https://gabrielm.dev/sitemap-index.xml
