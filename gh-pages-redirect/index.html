@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Gabriel Mouallem — moved to gabrielm.dev</title>
+    <!-- Tell crawlers the canonical home is the new domain (consolidates SEO). -->
+    <link rel="canonical" href="https://gabrielm.dev/" />
+    <!-- Instant redirect for humans; Google treats a 0s refresh ~ a 301. -->
+    <meta http-equiv="refresh" content="0; url=https://gabrielm.dev/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Belt-and-suspenders: preserve any #hash, replace history so Back works.
+      location.replace("https://gabrielm.dev/" + (location.hash || ""));
+    </script>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 32rem; margin: 4rem auto; padding: 0 1rem; color: #222; }
+      a { color: #2563eb; }
+    </style>
+  </head>
+  <body>
+    <p>
+      This site has moved to
+      <a href="https://gabrielm.dev/">gabrielm.dev</a>. Redirecting you now…
+    </p>
+  </body>
+</html>

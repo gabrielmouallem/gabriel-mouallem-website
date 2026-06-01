@@ -1,8 +1,15 @@
-name: Deploy to GitHub Pages
+name: Deploy GitHub Pages redirect
 
+# The real site now lives at https://gabrielm.dev (Cloudflare Workers).
+# GitHub Pages serves only a redirect stub so the old project URL
+# (gabrielmouallem.github.io/gabriel-mouallem-website) forwards old inbound
+# links to the new domain and passes SEO signals via canonical + meta refresh.
 on:
   push:
     branches: [main]
+    paths:
+      - gh-pages-redirect/**
+      - .github/workflows/deploy.yml
   workflow_dispatch:
 
 permissions:
@@ -10,35 +17,25 @@ permissions:
   pages: write
   id-token: write
 
-# Allow one concurrent deployment, cancelling in-progress runs.
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    env:
-      # Serve under the project sub-path on GitHub Pages. Local dev/build
-      # without this var stays at "/".
-      ASTRO_BASE: /gabriel-mouallem-website
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install, build, and upload Astro site
-        uses: withastro/action@v3
-        with:
-          package-manager: bun@latest
-          node-version: 22
-
   deploy:
-    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload redirect stub
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: gh-pages-redirect
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

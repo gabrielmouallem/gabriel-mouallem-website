@@ -13,7 +13,7 @@ const base = process.env.ASTRO_BASE ?? '/';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://gabrielmouallem.github.io',
+  site: 'https://gabrielm.dev',
   base,
   integrations: [react(), sitemap()],
 });

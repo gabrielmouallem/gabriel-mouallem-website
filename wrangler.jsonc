@@ -1,0 +1,16 @@
+{
+  // Static-assets-only Worker: serves the Astro `dist/` build directly.
+  // No `main` script -> no SSR, this stays a pure static deploy.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "gabriel-mouallem-website",
+  "account_id": "84daf71823f631f3539bca37d0a04ed3",
+  "compatibility_date": "2026-06-01",
+  "assets": {
+    "directory": "./dist",
+    // Serve Astro's generated 404.html for unknown paths.
+    "not_found_handling": "404-page"
+  },
+  // Bind the apex domain. Deploying provisions the DNS record + cert on the
+  // gabrielm.dev zone (already on this Cloudflare account).
+  "routes": [{ "pattern": "gabrielm.dev", "custom_domain": true }]
+}
