@@ -897,7 +897,11 @@ body {
   position: absolute;
   top: 9.5vh;
   left: 4.5vw;
-  right: 4vw;
+  /* Right edge on the shared 4.5vw content gutter (matches the nav, CTA and
+     timeline). This lands M. + dot exactly on the rightmost timeline vertical
+     — the Stealth column — instead of hanging 0.5vw past it. The vw unit keeps
+     that alignment true at every viewport width (it isn't a one-screen tweak). */
+  right: 4.5vw;
   font-weight: 700;
   line-height: 0.92;
   letter-spacing: -0.045em;
@@ -921,11 +925,11 @@ body {
   text-align: left;
 }
 
-/* Line 2 (GABRIEL ... M.) — flex with two fragments. GABRIEL keeps its
-   22vw indent; M. is pushed to ~5vw from the hero-title's right edge
-   (which lands at ~9vw from the viewport edge — where the corner arrow
-   used to live, so the M. takes its place exactly). The flex
-   space-between provides the gap. */
+/* Line 2 (GABRIEL ... M.) — flex with two fragments. GABRIEL takes a large
+   left indent (padding-left below); M. is anchored to the line's right edge
+   (padding-right: 0) and the flex `space-between` opens the gap between them.
+   The title's right edge sits on the 4.5vw content gutter, so M. + dot rest
+   on the rightmost timeline rail (the Stealth column). */
 .hero-line-2 {
   display: flex;
   justify-content: space-between;
@@ -947,9 +951,10 @@ body {
        per char. 9 chars × 0.555 ≈ 5.0; +0.4em gap; +0.2 safety = 5.6. */
   padding-left: clamp(0px, calc(100% - 5.6 * var(--hero-fs)), 22vw);
 
-  /* padding-right: 0 anchors M.'s right edge to hero-title's right edge
-     (which sits at viewport-right − 4 vw, aligned with the timeline's
-     rightmost vertical line — the Stealth column). */
+  /* padding-right: 0 anchors M.'s right edge to hero-title's right edge.
+     With the title's right edge now on the 4.5vw content gutter (matching the
+     nav, CTA and timeline), M. + dot land exactly on the rightmost timeline
+     vertical — the Stealth column. */
   padding-right: 0;
 }
 
