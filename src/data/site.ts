@@ -12,15 +12,16 @@ export const SITE = {
   initials: "GM",
   title: "Product & Software Engineer",
 
-  /** Browser tab / <title> — front-loads the name + role + headline stack so
-   * the most valuable keywords appear first in SERPs and tab labels. */
-  pageTitle:
-    "Gabriel Mouallem — Product & Software Engineer | Full-Stack · Kubernetes · Cloud Native",
+  /** Browser tab / <title> — front-loads name + role so the highest-value
+   * keywords lead, and stays ≤60 chars so Google doesn't truncate it in
+   * SERPs (the broader skill stack lives in the meta description instead). */
+  pageTitle: "Gabriel Mouallem — Senior Product & Software Engineer",
 
-  /** Meta description (~160 chars). Keyword-dense but readable; states the
-   * LATAM/remote-contract angle that the visual page only implies. */
+  /** Meta description — kept inside the ~50–160 char SERP window so it isn't
+   * truncated. Keyword-dense but readable; states the LATAM/remote-contract
+   * angle that the visual page only implies. */
   description:
-    "Gabriel Mouallem is a senior Product & Software Engineer from Brazil (LATAM) with 7+ years in full-stack React, Next.js, Node.js & Python and cloud-native Kubernetes. Open to remote & contract work with US and global teams.",
+    "Senior Product & Software Engineer from Brazil (LATAM). 7+ years in full-stack React, Next.js, Node.js, Python & Kubernetes. Open to remote & contract roles.",
 
   /** Longer blurb for Open Graph / structured data, where length is less
    * constrained and the extra context helps relevance + social previews. */

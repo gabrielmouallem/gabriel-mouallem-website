@@ -10,7 +10,10 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "typecheck": "tsgo --noEmit"
+    "typecheck": "tsgo --noEmit",
+    "audit": "astro build && node scripts/seo-audit.mjs",
+    "audit:dist": "node scripts/seo-audit.mjs",
+    "audit:web": "npx unlighthouse@latest --site https://gabrielm.dev"
   },
   "dependencies": {
     "@astrojs/react": "^5.0.6",

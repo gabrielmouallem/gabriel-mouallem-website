@@ -1,0 +1,36 @@
+name: CI
+
+# Builds the site, typechecks, and runs the SEO audit (scripts/seo-audit.mjs)
+# on every push/PR. The audit fails the job on any ERROR-level finding — e.g.
+# a canonical URL left with no incoming internal links — so SEO regressions
+# are caught before they ship to gabrielm.dev.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: SEO audit (build + crawl)
+        run: npm run audit

@@ -151,7 +151,15 @@ html[data-palette-mode="dark"] {
    ────────────────────────────────────────────────────────────────────── */
 :root {
   --grid-gutter: 4.5vw;
-  --grid-module: calc((100vw - var(--grid-gutter) * 2) / 6);
+  /* Span uses 100% of body::before (a position:fixed layer = the scrollbar-
+     EXCLUDED content box), NOT 100vw. The nav/timeline/panels all resolve
+     their 4.5vw right gutter against that same content box, so when a vertical
+     scrollbar is present (vw includes its gutter, the content box does not) a
+     vw-based module would drift left of the content by one scrollbar-width,
+     accumulating across the 6 columns. Anchoring the module to 100% keeps every
+     primary line locked to a timeline column / content edge. With no scrollbar
+     (mobile / overlay scrollbars) 100% == 100vw, so this is a no-op there. */
+  --grid-module: calc((100% - var(--grid-gutter) * 2) / 6);
   --grid-cell: calc(var(--grid-module) / 8);
 
   /* Line patterns (graph + lines) — kept subtle. --grid-dot is the dot
@@ -943,6 +951,21 @@ body {
   z-index: 2;
 }
 
+
+/* Brand → home link. Inherits the title's type/colour so it reads as plain
+   text; the only affordance is a soft focus ring for keyboard users. */
+.hero-title-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+
+.hero-title-link:focus-visible {
+  outline: 2px solid var(--hero-accent);
+  outline-offset: 0.15em;
+  border-radius: 0.05em;
+}
 
 .hero-line {
   display: block;
