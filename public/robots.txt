@@ -2,3 +2,6 @@ User-agent: *
 Allow: /
 
 Sitemap: https://gabrielm.dev/sitemap-index.xml
+
+# LLM-friendly site summary (llmstxt.org)
+# https://gabrielm.dev/llms.txt
